@@ -16,7 +16,7 @@ function GameContent() {
   const playerName = searchParams.get('name') ?? '';
 
   const {
-    gameState, playerId, connected, error,
+    gameState, playerId, connected, error, lobbyPlayers, roomId: rtcRoomId,
     joinRoom, startGame,
     selectedCardId, showChangeColor, showDiscardAll, toast,
     handleCardClick, handleDraw, handleSayUno,
@@ -26,20 +26,36 @@ function GameContent() {
   } = useGame();
 
   const [hasJoined, setHasJoined] = useState(false);
-  const [lobbyPlayers, setLobbyPlayers] = useState<string[]>([]);
+  const [hasDrawn, setHasDrawn] = useState(false);
+  const lastTurnRef = useRef<number>(-1);
   const hasRequestedJoin = useRef(false);
 
+  const actualRoomId = rtcRoomId || roomId;
+
   useEffect(() => {
-    if (!roomId || !playerName || hasRequestedJoin.current) return;
+    if (!actualRoomId || !playerName || hasRequestedJoin.current) return;
     hasRequestedJoin.current = true;
-    joinRoom(roomId, playerName);
-  }, [roomId, playerName, joinRoom]);
+    joinRoom(actualRoomId, playerName);
+  }, [actualRoomId, playerName, joinRoom]);
 
   useEffect(() => {
     if (gameState && gameState.status === 'in_game') {
       setHasJoined(true);
+      if (gameState.currentPlayerIndex !== lastTurnRef.current) {
+        setHasDrawn(false);
+        lastTurnRef.current = gameState.currentPlayerIndex;
+      }
     }
   }, [gameState]);
+
+  const handleDrawClick = () => {
+    handleDraw();
+    setHasDrawn(true);
+  };
+
+  const handleCardPlay = (cardId: string) => {
+    handleCardClick(cardId);
+  };
 
   const currentPlayerName = gameState
     ? gameState.players[gameState.currentPlayerIndex]?.name ?? ''
@@ -48,7 +64,7 @@ function GameContent() {
   const localPlayer = gameState?.players.find((p) => p.id === playerId);
   const unoEligible = localPlayer?.hand.length === 1 && !localPlayer.saidUno;
 
-  if (!roomId || !playerName) {
+  if (!actualRoomId || !playerName) {
     return (
       <div className="flex-1 flex items-center justify-center bg-bgPrimary">
         <div className="text-center">
@@ -63,10 +79,29 @@ function GameContent() {
     return (
       <div className="flex-1 flex items-center justify-center bg-bgPrimary">
         <div className="bg-bgSecondary rounded-2xl border border-textMuted/10 p-8 w-full max-w-sm text-center">
-          <h2 className="text-xl font-bold text-textPrimary mb-2">Room: {roomId}</h2>
+          <h2 className="text-xl font-bold text-textPrimary mb-2">Room: {actualRoomId}</h2>
           <p className="text-textMuted text-sm mb-4">
-            {connected ? 'Waiting for players...' : 'Connecting...'}
+            {connected ? 'Players in lobby:' : 'Connecting...'}
           </p>
+
+          {lobbyPlayers.length > 0 && (
+            <div className="mb-4 space-y-1">
+              {lobbyPlayers.map((p, i) => (
+                <div
+                  key={p.id}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-bgTertiary/50 text-sm text-textPrimary"
+                >
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                    style={{ backgroundColor: ['#E44747','#F3C742','#33B56B','#3478F6','#7A4DFF','#FF6B6B','#4CD97B','#AAB2C0'][i % 8] }}
+                  >
+                    {p.name.charAt(0).toUpperCase()}
+                  </span>
+                  <span>{p.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           <p className="text-textMuted text-xs mb-6">
             Share this room code with friends
           </p>
@@ -79,9 +114,9 @@ function GameContent() {
             <Button
               variant="primary"
               onClick={() => startGame()}
-              disabled={!connected}
+              disabled={!connected || lobbyPlayers.length < 2}
             >
-              Start Game
+              {lobbyPlayers.length < 2 ? `Waiting (${lobbyPlayers.length}/2)` : `Start Game (${lobbyPlayers.length})`}
             </Button>
             <Button variant="secondary" onClick={() => router.push('/')}>
               Leave
@@ -106,7 +141,7 @@ function GameContent() {
   return (
     <div className="flex-1 flex flex-col h-screen">
       <TopBar
-        roomId={roomId}
+        roomId={actualRoomId}
         currentPlayer={currentPlayerName}
         direction={gameState.direction === 1 ? 'clockwise' : 'counter'}
         stackValue={gameState.pendingDraw}
@@ -116,13 +151,14 @@ function GameContent() {
           gameState={gameState}
           playerId={playerId}
           selectedCardId={selectedCardId}
-          onCardClick={handleCardClick}
-          onDraw={handleDraw}
-          drawDisabled={gameState.pendingDraw <= 0 || !isMyTurn}
+          onCardClick={handleCardPlay}
+          onDraw={handleDrawClick}
+          drawDisabled={hasDrawn || gameState.pendingDraw <= 0 || !isMyTurn}
           handDisabled={isGameFinished}
+          hasDrawn={hasDrawn}
         />
         <RightPanel
-          onDraw={handleDraw}
+          onDraw={handleDrawClick}
           onSayUno={handleSayUno}
           onLeave={handleLeave}
           onEmote={handleEmote}

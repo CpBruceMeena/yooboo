@@ -4,7 +4,7 @@ import {
   GameState, Player, Card, PlayCardEvent,
   createDeck, validatePlay, applyCardEffect,
   resolveStack, resolveSmileyDraw, nextTurn,
-  checkElimination, checkWinner, shuffle,
+  checkElimination, checkWinner, shuffle, recycleDiscardPile,
 } from '../src/lib/game';
 
 interface ClientInfo {
@@ -13,9 +13,15 @@ interface ClientInfo {
   roomId: string;
 }
 
+interface LobbyPlayer {
+  id: string;
+  name: string;
+}
+
 interface Room {
-  state: GameState;
+  state: GameState | null;
   clients: Map<string, string>;
+  lobbyPlayers: LobbyPlayer[];
 }
 
 const rooms = new Map<string, Room>();
@@ -77,7 +83,7 @@ export function setupGameServer(httpServer: HTTPServer) {
 
       let room = rooms.get(roomId);
       if (!room) {
-        room = { state: null as any, clients: new Map() };
+        room = { state: null, clients: new Map(), lobbyPlayers: [] };
         rooms.set(roomId, room);
       }
 
@@ -89,17 +95,14 @@ export function setupGameServer(httpServer: HTTPServer) {
       const playerId = `${socket.id}_${Date.now()}`;
       socket.join(roomId);
       room.clients.set(socket.id, playerId);
+      room.lobbyPlayers.push({ id: playerId, name: playerName });
       clientMap.set(socket.id, { playerId, playerName, roomId });
 
       socket.emit('you_are', { playerId, playerName });
 
-      const existingPlayers = room.state
-        ? room.state.players.map((p) => ({ id: p.id, name: p.name }))
-        : [];
-
       socket.emit('room_joined', {
         roomId,
-        players: [...existingPlayers.map((p) => ({ ...p, hand: [] }))],
+        players: room.lobbyPlayers.map((p) => ({ id: p.id, name: p.name, hand: [] })),
       });
 
       socket.to(roomId).emit('player_joined', { playerId, playerName });
@@ -122,6 +125,7 @@ export function setupGameServer(httpServer: HTTPServer) {
         return;
       }
 
+      room.lobbyPlayers = [];
       room.state = createInitialState(info.roomId, players);
 
       for (const sid of room.clients.keys()) {
@@ -218,7 +222,6 @@ export function setupGameServer(httpServer: HTTPServer) {
         }
       } else {
         if (state.drawPile.length === 0) {
-          const { recycleDiscardPile } = require('../src/lib/game/createDeck');
           const recycled = recycleDiscardPile(state.discardPile);
           state.drawPile.push(...recycled);
         }
@@ -292,6 +295,7 @@ export function setupGameServer(httpServer: HTTPServer) {
         const room = rooms.get(info.roomId);
         if (room) {
           room.clients.delete(socket.id);
+          room.lobbyPlayers = room.lobbyPlayers.filter((p) => p.id !== info.playerId);
           const player = room.state?.players.find((p) => p.id === info.playerId);
           if (player) player.connected = false;
           socket.to(info.roomId).emit('player_disconnected', { playerId: info.playerId });

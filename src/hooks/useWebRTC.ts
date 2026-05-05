@@ -4,12 +4,19 @@ import { GameState, ServerMessage, ClientMessage, Player, Card } from '@/lib/gam
 
 const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001';
 
+interface LobbyPlayerInfo {
+  id: string;
+  name: string;
+}
+
 interface UseWebRTCReturn {
   connected: boolean;
   gameState: GameState | null;
   playerId: string | null;
   playerName: string | null;
   error: string | null;
+  lobbyPlayers: LobbyPlayerInfo[];
+  roomId: string | null;
   joinRoom: (roomId: string, playerName: string) => void;
   startGame: () => void;
   playCard: (cardId: string, chosenColor?: Exclude<Card['color'], 'wild'>) => void;
@@ -28,6 +35,8 @@ export function useWebRTC(): UseWebRTCReturn {
   const [playerName, setPlayerName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [revealedCards, setRevealedCards] = useState<{ card: Card; playerId: string }[]>([]);
+  const [lobbyPlayers, setLobbyPlayers] = useState<LobbyPlayerInfo[]>([]);
+  const [roomId, setRoomId] = useState<string | null>(null);
 
   useEffect(() => {
     const socket = io(SERVER_URL, { transports: ['websocket'] });
@@ -39,6 +48,22 @@ export function useWebRTC(): UseWebRTCReturn {
     socket.on('you_are', (data: { playerId: string; playerName: string }) => {
       setPlayerId(data.playerId);
       setPlayerName(data.playerName);
+    });
+
+    socket.on('room_joined', (data: { roomId: string; players: LobbyPlayerInfo[] }) => {
+      setRoomId(data.roomId);
+      setLobbyPlayers(data.players);
+    });
+
+    socket.on('player_joined', (data: { playerId: string; playerName: string }) => {
+      setLobbyPlayers((prev) => {
+        if (prev.find((p) => p.id === data.playerId)) return prev;
+        return [...prev, { id: data.playerId, name: data.playerName }];
+      });
+    });
+
+    socket.on('player_disconnected', (data: { playerId: string }) => {
+      setLobbyPlayers((prev) => prev.filter((p) => p.id !== data.playerId));
     });
 
     socket.on('state_update', (data: { state: GameState }) => {
@@ -108,6 +133,8 @@ export function useWebRTC(): UseWebRTCReturn {
   const leaveRoom = useCallback(() => {
     socketRef.current?.emit('leave_room');
     setGameState(null);
+    setLobbyPlayers([]);
+    setRoomId(null);
   }, []);
 
   return {
@@ -116,6 +143,8 @@ export function useWebRTC(): UseWebRTCReturn {
     playerId,
     playerName,
     error,
+    lobbyPlayers,
+    roomId,
     joinRoom,
     startGame,
     playCard,

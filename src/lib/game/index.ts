@@ -1,5 +1,5 @@
 export * from './types';
-export { createDeck, shuffle } from './createDeck';
+export { createDeck, shuffle, recycleDiscardPile } from './createDeck';
 export { canPlayCard, validatePlay, getPlayableCards } from './validateMove';
 export { applyCardEffect } from './applyCardEffect';
 export { resolveStack } from './resolveStack';

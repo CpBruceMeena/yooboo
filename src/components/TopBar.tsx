@@ -23,9 +23,9 @@ export default function TopBar({ roomId, currentPlayer, direction, stackValue }:
         {direction && (
           <span>{direction === 'clockwise' ? '→' : '←'} {direction}</span>
         )}
-        {stackValue && stackValue > 0 ? (
+        {stackValue != null && stackValue > 0 && (
           <span className="text-danger font-bold">Stack: {stackValue}</span>
-        ) : null}
+        )}
       </div>
     </div>
   );

@@ -17,6 +17,7 @@ interface GameTableProps {
   onDraw: () => void;
   drawDisabled?: boolean;
   handDisabled?: boolean;
+  hasDrawn?: boolean;
 }
 
 export default function GameTable({
@@ -27,19 +28,24 @@ export default function GameTable({
   onDraw,
   drawDisabled,
   handDisabled,
+  hasDrawn,
 }: GameTableProps) {
   const localPlayer = gameState.players.find((p) => p.id === playerId);
   const discardTop = gameState.discardPile[gameState.discardPile.length - 1];
   const isMyTurn = playerId === gameState.players[gameState.currentPlayerIndex]?.id;
 
+  const canPlayFree = isMyTurn && hasDrawn;
+
   const playableCardIds = localPlayer && isMyTurn
-    ? getPlayableCards(
-        localPlayer.hand,
-        gameState.activeColor,
-        discardTop,
-        gameState.pendingDraw,
-        gameState.pendingType,
-      )
+    ? canPlayFree
+      ? localPlayer.hand.map((c) => c.id)
+      : getPlayableCards(
+          localPlayer.hand,
+          gameState.activeColor,
+          discardTop,
+          gameState.pendingDraw,
+          gameState.pendingType,
+        )
     : [];
 
   const currentPlayer = gameState.players[gameState.currentPlayerIndex];
