@@ -42,11 +42,12 @@ export function useWebRTC(): UseWebRTCReturn {
       `${window.location.protocol}//${window.location.hostname}:3001`;
 
     const socket = io(socketUrl, {
-      transports: ['polling', 'websocket'],
+      transports: ['websocket'],
       path: '/socket.io',
       timeout: 10000,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
+      reconnection: true,
     });
     socketRef.current = socket;
 
@@ -57,7 +58,8 @@ export function useWebRTC(): UseWebRTCReturn {
     });
     socket.on('disconnect', () => setConnected(false));
     socket.on('connect_error', (err: Error & { message?: string }) => {
-      setError(`Socket connect failed: ${err.message || 'unknown error'}`);
+      console.error('connect_error:', err);
+      setError(`Socket error: ${err.message || 'unknown error'}`);
     });
     socket.on('connect_timeout', () => {
       setError('Socket connection timed out');

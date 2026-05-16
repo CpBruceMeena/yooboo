@@ -134,11 +134,14 @@ export function setupGameServer(httpServer: HTTPServer) {
 
         room.lobbyPlayers = [];
         room.state = createInitialState(info.roomId, players);
+        console.log('start_game room.clients entries', Array.from(room.clients.entries()));
 
         for (const sid of room.clients.keys()) {
           const cInfo = clientMap.get(sid);
+          console.log('start_game loop sid', sid, 'cInfo', cInfo);
           if (cInfo) {
             const player = room.state.players.find((p) => p.id === cInfo.playerId);
+            console.log('start_game found player', player?.name, 'for', cInfo.playerId);
             if (player) {
               const privateState = {
                 ...room.state,
@@ -147,8 +150,13 @@ export function setupGameServer(httpServer: HTTPServer) {
                   hand: p.id === player.id ? p.hand : [],
                 })),
               };
+              console.log('start_game emitting state_update to', sid, 'for player', player.name);
               io.to(sid).emit('state_update', { state: privateState });
+            } else {
+              console.log('start_game could not find player for cInfo', cInfo);
             }
+          } else {
+            console.log('start_game missing client info for socket id', sid);
           }
         }
       } catch (err) {

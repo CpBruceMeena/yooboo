@@ -80,8 +80,9 @@ function GameContent() {
       <div className="flex-1 flex items-center justify-center bg-bgPrimary">
         <div className="bg-bgSecondary rounded-2xl border border-textMuted/10 p-8 w-full max-w-sm text-center">
           <h2 className="text-xl font-bold text-textPrimary mb-2">Room: {actualRoomId}</h2>
-          <p className="text-textMuted text-sm mb-4">
-            {connected ? 'Players in lobby:' : 'Connecting...'}
+          <p className="text-textMuted text-sm mb-4 flex items-center gap-2">
+            <span className={`w-2 h-2 rounded-full ${connected ? 'bg-success' : 'bg-warning'}`}></span>
+            {connected ? 'Players in lobby:' : 'Connecting to server...'}
           </p>
 
           {lobbyPlayers.length > 0 && (
@@ -115,6 +116,7 @@ function GameContent() {
               variant="primary"
               onClick={() => startGame()}
               disabled={!connected || lobbyPlayers.length < 2}
+              title={!connected ? 'Waiting for server connection...' : lobbyPlayers.length < 2 ? 'Waiting for another player...' : 'Ready to start'}
             >
               {lobbyPlayers.length < 2 ? `Waiting (${lobbyPlayers.length}/2)` : `Start Game (${lobbyPlayers.length})`}
             </Button>
