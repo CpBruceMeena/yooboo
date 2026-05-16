@@ -42,21 +42,24 @@ export function useWebRTC(): UseWebRTCReturn {
       `${window.location.protocol}//${window.location.hostname}:3001`;
 
     const socket = io(socketUrl, {
-      transports: ['polling', 'websocket'],
+      transports: ['websocket'],
       path: '/socket.io',
       timeout: 10000,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
+      reconnection: true,
     });
     socketRef.current = socket;
 
     socket.on('connect', () => {
+      console.log('socket connected', socket.id, 'to', socketUrl);
       setConnected(true);
       setError(null);
     });
     socket.on('disconnect', () => setConnected(false));
     socket.on('connect_error', (err: Error & { message?: string }) => {
-      setError(`Socket connect failed: ${err.message || 'unknown error'}`);
+      console.error('connect_error:', err);
+      setError(`Socket error: ${err.message || 'unknown error'}`);
     });
     socket.on('connect_timeout', () => {
       setError('Socket connection timed out');
@@ -66,16 +69,19 @@ export function useWebRTC(): UseWebRTCReturn {
     });
 
     socket.on('you_are', (data: { playerId: string; playerName: string }) => {
+      console.log('you_are', data);
       setPlayerId(data.playerId);
       setPlayerName(data.playerName);
     });
 
     socket.on('room_joined', (data: { roomId: string; players: LobbyPlayerInfo[] }) => {
+      console.log('room_joined', data.roomId, data.players.map(p => p.name));
       setRoomId(data.roomId);
       setLobbyPlayers(data.players);
     });
 
     socket.on('player_joined', (data: { playerId: string; playerName: string }) => {
+      console.log('player_joined', data);
       setLobbyPlayers((prev) => {
         if (prev.find((p) => p.id === data.playerId)) return prev;
         return [...prev, { id: data.playerId, name: data.playerName }];
@@ -87,6 +93,7 @@ export function useWebRTC(): UseWebRTCReturn {
     });
 
     socket.on('state_update', (data: { state: GameState }) => {
+      console.log('state_update received: status=', data.state.status, 'players=', data.state.players.map(p=>({id:p.id,name:p.name,hand:p.hand.length}))); 
       setGameState(data.state);
     });
 
@@ -125,10 +132,12 @@ export function useWebRTC(): UseWebRTCReturn {
   }, []);
 
   const joinRoom = useCallback((roomId: string, name: string) => {
+    console.log('emit join_room', roomId, name);
     socketRef.current?.emit('join_room', { roomId, playerName: name });
   }, []);
 
   const startGame = useCallback(() => {
+    console.log('emit start_game');
     socketRef.current?.emit('start_game');
   }, []);
 
