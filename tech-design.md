@@ -498,3 +498,17 @@ Excluded:
 * Replays
 
 ---
+
+## Update Notes (agent)
+
+- Date: 2026-05-16
+- An automated developer agent file `.agent.md` has been added to the repo to assist
+  with triage, reproduction, and fixes.
+
+Immediate triage checklist:
+1. Reproduce runtime errors by starting the server (`cd server && npx tsx index.ts`) and
+   client (`npm run dev`) and capture full logs.
+2. Ensure dependencies: `npm install` at root and `cd server && npm install`.
+3. Run TypeScript checks: `npx tsc --noEmit` and fix type errors preventing runtime.
+4. Inspect `server/index.ts` and `server/gameServer.ts` for startup/Socket.IO mismatch issues.
+

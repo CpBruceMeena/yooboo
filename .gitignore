@@ -40,3 +40,19 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .venv/
+.code-review-graph/
+.code_review_graph/
+code-review-graph-cache/
+crg-cache/
+.cache/code-review-graph/
+.cache/crg/
+*.crg
+
+# Agent files and logs
+.agent.md
+.logs/
+run.sh
+
+# Server dependencies
+server/node_modules/
+server/package-lock.json

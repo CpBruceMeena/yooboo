@@ -2,8 +2,6 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { GameState, ServerMessage, ClientMessage, Player, Card } from '@/lib/game';
 
-const SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3001';
-
 interface LobbyPlayerInfo {
   id: string;
   name: string;
@@ -39,11 +37,33 @@ export function useWebRTC(): UseWebRTCReturn {
   const [roomId, setRoomId] = useState<string | null>(null);
 
   useEffect(() => {
-    const socket = io(SERVER_URL, { transports: ['websocket'] });
+    const socketUrl =
+      process.env.NEXT_PUBLIC_SERVER_URL ||
+      `${window.location.protocol}//${window.location.hostname}:3001`;
+
+    const socket = io(socketUrl, {
+      transports: ['polling', 'websocket'],
+      path: '/socket.io',
+      timeout: 10000,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000,
+    });
     socketRef.current = socket;
 
-    socket.on('connect', () => setConnected(true));
+    socket.on('connect', () => {
+      setConnected(true);
+      setError(null);
+    });
     socket.on('disconnect', () => setConnected(false));
+    socket.on('connect_error', (err: Error & { message?: string }) => {
+      setError(`Socket connect failed: ${err.message || 'unknown error'}`);
+    });
+    socket.on('connect_timeout', () => {
+      setError('Socket connection timed out');
+    });
+    socket.on('reconnect_failed', () => {
+      setError('Socket reconnect failed');
+    });
 
     socket.on('you_are', (data: { playerId: string; playerName: string }) => {
       setPlayerId(data.playerId);
@@ -99,6 +119,7 @@ export function useWebRTC(): UseWebRTCReturn {
     });
 
     return () => {
+      socket.removeAllListeners();
       socket.disconnect();
     };
   }, []);

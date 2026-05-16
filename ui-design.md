@@ -628,3 +628,13 @@ Claude MUST NOT:
 * Include Smiley in stack numeric value
 
 ---
+
+## Update Notes (agent)
+
+- Date: 2026-05-16
+- A `.agent.md` developer agent was added to help triage and apply fixes for runtime and UI issues.
+- Immediate UI/UX tasks:
+  1. Verify the current UI components render without runtime errors in Next.js dev mode.
+  2. Confirm Tailwind v4 tokens are present in `tailwind.config` and that CSS builds.
+  3. Ensure component props match `src/components/*` implementations to avoid hydration/runtime mismatches.
+
