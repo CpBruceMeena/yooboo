@@ -35,6 +35,7 @@ export function useWebRTC(): UseWebRTCReturn {
   const [revealedCards, setRevealedCards] = useState<{ card: Card; playerId: string }[]>([]);
   const [lobbyPlayers, setLobbyPlayers] = useState<LobbyPlayerInfo[]>([]);
   const [roomId, setRoomId] = useState<string | null>(null);
+  const pendingJoinRef = useRef<{ roomId: string; playerName: string } | null>(null);
 
   useEffect(() => {
     const socketUrl =
@@ -42,7 +43,6 @@ export function useWebRTC(): UseWebRTCReturn {
       `${window.location.protocol}//${window.location.hostname}:3001`;
 
     const socket = io(socketUrl, {
-      transports: ['websocket'],
       path: '/socket.io',
       timeout: 10000,
       reconnectionAttempts: 10,
@@ -55,6 +55,12 @@ export function useWebRTC(): UseWebRTCReturn {
       console.log('socket connected', socket.id, 'to', socketUrl);
       setConnected(true);
       setError(null);
+      if (pendingJoinRef.current) {
+        const { roomId, playerName } = pendingJoinRef.current;
+        console.log('emitting pending join_room after connect', roomId, playerName);
+        socket.emit('join_room', { roomId, playerName });
+        pendingJoinRef.current = null;
+      }
     });
     socket.on('disconnect', () => setConnected(false));
     socket.on('connect_error', (err: Error & { message?: string }) => {
@@ -132,8 +138,13 @@ export function useWebRTC(): UseWebRTCReturn {
   }, []);
 
   const joinRoom = useCallback((roomId: string, name: string) => {
-    console.log('emit join_room', roomId, name);
-    socketRef.current?.emit('join_room', { roomId, playerName: name });
+    const socket = socketRef.current;
+    console.log('joinRoom called', roomId, name, 'connected=', socket?.connected);
+    if (socket?.connected) {
+      socket.emit('join_room', { roomId, playerName: name });
+    } else {
+      pendingJoinRef.current = { roomId, playerName: name };
+    }
   }, []);
 
   const startGame = useCallback(() => {
