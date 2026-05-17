@@ -6,6 +6,7 @@ interface ButtonProps {
   onClick?: () => void;
   disabled?: boolean;
   className?: string;
+  title?: string;
 }
 
 const variantStyles: Record<string, string> = {
