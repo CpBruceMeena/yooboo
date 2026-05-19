@@ -48,6 +48,22 @@ crg-cache/
 .cache/crg/
 *.crg
 
+# Platform AI tool configs (from code-review-graph)
+.mcp.json
+.claude/
+.gemini/
+.kiro/
+.qoder/
+.github/
+.vscode/
+.cursorrules
+.windsurfrules
+.opencode.json
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+QODER.md
+
 # Agent files and logs
 .agent.md
 .logs/
