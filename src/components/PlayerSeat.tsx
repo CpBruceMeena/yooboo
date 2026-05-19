@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'motion/react';
 import { Player } from '@/lib/game';
 
 interface PlayerSeatProps {
@@ -41,9 +42,13 @@ export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, 
   const isHorizontal = position === 'left' || position === 'right';
 
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 200, damping: 20 }}
       className={`
-        flex gap-2.5 p-2.5 rounded-xl transition-all duration-300
+        flex gap-2.5 p-2.5 rounded-xl transition-colors duration-300
         ${isEliminated ? 'opacity-35' : ''}
         ${isActive ? 'bg-bgTertiary/40' : ''}
         ${positionStyles[position]}
@@ -52,11 +57,31 @@ export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, 
       <div className="relative">
         {/* Avatar glow ring for active/current player */}
         {(isActive || isCurrentPlayer) && (
-          <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-blue to-wild opacity-40 animate-avatar-glow" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 0.4, scale: 1 }}
+            transition={{
+              repeat: Infinity,
+              repeatType: 'reverse',
+              duration: 2,
+              ease: 'easeInOut',
+            }}
+            className="absolute -inset-1 rounded-full bg-gradient-to-br from-blue to-wild"
+          />
         )}
         {/* UNO glow */}
         {isUno && (
-          <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-success to-green opacity-50 animate-avatar-glow" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 0.5, scale: 1 }}
+            transition={{
+              repeat: Infinity,
+              repeatType: 'reverse',
+              duration: 1.5,
+              ease: 'easeInOut',
+            }}
+            className="absolute -inset-1 rounded-full bg-gradient-to-br from-success to-green"
+          />
         )}
         <div
           className={`
@@ -70,31 +95,52 @@ export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, 
           {player.name.charAt(0).toUpperCase()}
         </div>
         {isEliminated && (
-          <div className="absolute -top-1 -right-1 bg-danger text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold shadow-lg z-10">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 12 }}
+            className="absolute -top-1 -right-1 bg-danger text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold shadow-lg z-10"
+          >
             ✕
-          </div>
+          </motion.div>
         )}
         {/* Bottom position - show card count badge */}
         {position === 'bottom' && !isEliminated && (
-          <div className="absolute -bottom-1 -right-1 bg-bgSecondary text-textMuted text-[10px] px-1.5 py-0.5 rounded-full font-bold border border-textMuted/20 shadow-lg z-10">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            key={cardCount}
+            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+            className="absolute -bottom-1 -right-1 bg-bgSecondary text-textMuted text-[10px] px-1.5 py-0.5 rounded-full font-bold border border-textMuted/20 shadow-lg z-10"
+          >
             {cardCount}
-          </div>
+          </motion.div>
         )}
       </div>
       <div className={`flex flex-col ${isHorizontal ? 'min-w-0' : ''}`}>
-        <span className={`text-sm font-semibold text-textPrimary truncate max-w-[72px] ${isEliminated ? 'line-through opacity-60' : ''}`}>
+        <motion.span
+          layout
+          className={`text-sm font-semibold text-textPrimary truncate max-w-[72px] ${isEliminated ? 'line-through opacity-60' : ''}`}
+        >
           {player.name}
-        </span>
+        </motion.span>
         {!isHorizontal && (
           <span className="text-[11px] text-textMuted/70">{cardCount} cards</span>
         )}
         {isUno && (
-          <span className="text-[11px] text-success font-bold animate-uno-pulse">UNO!</span>
+          <motion.span
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+            className="text-[11px] text-success font-bold"
+          >
+            UNO!
+          </motion.span>
         )}
         {isEliminated && (
           <span className="text-[11px] text-danger font-bold">✗ ELIMINATED</span>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

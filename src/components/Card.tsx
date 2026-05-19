@@ -1,5 +1,6 @@
 'use client';
 
+import { motion } from 'motion/react';
 import { Card as CardType } from '@/lib/game';
 
 interface CardProps {
@@ -54,24 +55,41 @@ export default function Card({ type, color, value, state = 'default', onClick, s
   const symbol = type === 'number' ? value : symbolMap[type] ?? '?';
   const textColor = color === 'yellow' ? 'text-black' : 'text-white';
 
+  const canInteract = isPlayable || isSelected;
+
   return (
-    <div
-      onClick={isPlayable || isSelected ? onClick : undefined}
+    <motion.div
+      onClick={canInteract ? onClick : undefined}
+      layout
+      whileHover={canInteract ? { y: -16, scale: 1.06 } : undefined}
+      whileTap={canInteract ? { scale: 0.95 } : undefined}
+      animate={{
+        y: isSelected ? -24 : 0,
+        scale: isSelected ? 1.06 : 1,
+      }}
+      transition={{
+        type: 'spring',
+        stiffness: 350,
+        damping: 20,
+        mass: 0.8,
+      }}
       className={`
         relative rounded-xl border-2 flex flex-col items-center justify-center
-        font-bold transition-all duration-200 cursor-pointer shrink-0 select-none
+        font-bold cursor-pointer shrink-0 select-none
         ${sizeMap[size]}
         ${colorGradients[color] ?? 'bg-bgTertiary'}
         ${textColor}
         border-white/15
         ${colorGlows[color] ?? ''}
-        ${isPlayable ? 'cursor-pointer hover:-translate-y-5 hover:scale-105 hover:shadow-[0_12px_32px_rgba(247,248,250,0.2)]' : ''}
-        ${isSelected ? '-translate-y-7 scale-105 shadow-[0_12px_32px_rgba(247,248,250,0.3)]' : ''}
+        ${isPlayable ? 'cursor-pointer' : ''}
         ${isDisabled ? 'opacity-35 cursor-not-allowed grayscale-[30%]' : ''}
       `}
     >
       {/* Inner card shine effect */}
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
+      <motion.div
+        className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/10 to-transparent pointer-events-none"
+        animate={{ opacity: isPlayable ? 0.15 : 0.1 }}
+      />
 
       {/* Corner badge top-left */}
       <span className={`absolute top-1 left-1.5 text-[10px] ${size === 'sm' ? 'hidden' : ''} leading-none`}>
@@ -92,6 +110,6 @@ export default function Card({ type, color, value, state = 'default', onClick, s
       <span className={`absolute bottom-1 right-1.5 text-[10px] ${size === 'sm' ? 'hidden' : ''} rotate-180 leading-none`}>
         {symbol}
       </span>
-    </div>
+    </motion.div>
   );
 }

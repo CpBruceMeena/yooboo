@@ -38,9 +38,7 @@ export function useWebRTC(): UseWebRTCReturn {
   const pendingJoinRef = useRef<{ roomId: string; playerName: string } | null>(null);
 
   useEffect(() => {
-    const socketUrl =
-      process.env.NEXT_PUBLIC_SERVER_URL ||
-      `${window.location.protocol}//${window.location.hostname}:3001`;
+    const socketUrl = process.env.NEXT_PUBLIC_SERVER_URL;
 
     const socket = io(socketUrl, {
       path: '/socket.io',

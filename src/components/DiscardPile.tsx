@@ -1,5 +1,6 @@
 'use client';
 
+import { motion, AnimatePresence } from 'motion/react';
 import { Card as CardType } from '@/lib/game';
 import Card from './Card';
 
@@ -23,14 +24,26 @@ export default function DiscardPile({ topCard, cards = [] }: DiscardPileProps) {
           style={{ backgroundColor: recent[recent.length - 2]?.color ?? '#242B38' }}
         />
       )}
-      <div className="animate-discard-burst">
-        <Card
-          type={topCard.type}
-          color={topCard.color}
-          value={topCard.value}
-          state="default"
-        />
-      </div>
+      <AnimatePresence mode="popLayout">
+        <motion.div
+          key={topCard.id}
+          initial={{ scale: 0.4, rotate: -15, opacity: 0 }}
+          animate={{ scale: 1, rotate: 0, opacity: 1 }}
+          exit={{ scale: 0.4, rotate: 10, opacity: 0 }}
+          transition={{
+            type: 'spring',
+            stiffness: 400,
+            damping: 18,
+          }}
+        >
+          <Card
+            type={topCard.type}
+            color={topCard.color}
+            value={topCard.value}
+            state="default"
+          />
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
