@@ -7,6 +7,7 @@ import ColorIndicator from './ColorIndicator';
 import DirectionIndicator from './DirectionIndicator';
 import StackMeter from './StackMeter';
 import PlayerRing from './PlayerRing';
+import PlayerSeat from './PlayerSeat';
 import PlayerHandTray from './PlayerHandTray';
 
 interface GameTableProps {
@@ -76,13 +77,32 @@ export default function GameTable({
         </div>
       </div>
 
-      <PlayerHandTray
-        cards={localPlayer?.hand ?? []}
-        playableCardIds={playableCardIds}
-        selectedCardId={selectedCardId}
-        onCardClick={onCardClick}
-        disabled={handDisabled || !isMyTurn}
-      />
+      <div className="flex items-end gap-3 px-4 pb-3">
+        {localPlayer && (
+          <PlayerSeat
+            player={localPlayer}
+            cardCount={localPlayer.hand.length}
+            state={
+              localPlayer.isEliminated
+                ? 'eliminated'
+                : localPlayer.hand.length === 1 && !localPlayer.isEliminated
+                  ? 'uno'
+                  : playerId === gameState.players[gameState.currentPlayerIndex]?.id
+                    ? 'active'
+                    : 'idle'
+            }
+            isCurrentPlayer={true}
+            position="bottom"
+          />
+        )}
+        <PlayerHandTray
+          cards={localPlayer?.hand ?? []}
+          playableCardIds={playableCardIds}
+          selectedCardId={selectedCardId}
+          onCardClick={onCardClick}
+          disabled={handDisabled || !isMyTurn}
+        />
+      </div>
     </div>
   );
 }

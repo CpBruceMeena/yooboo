@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card as CardType, CardColor, COLORS } from '@/lib/game';
 import Modal from './Modal';
 import Card from './Card';
@@ -8,6 +8,7 @@ import Card from './Card';
 interface DiscardAllModalProps {
   open: boolean;
   hand: CardType[];
+  presetColor: Exclude<CardColor, 'wild'> | null;
   onSelect: (color: Exclude<CardColor, 'wild'>, cardIds?: string[]) => void;
 }
 
@@ -25,9 +26,22 @@ const activeRing: Record<string, string> = {
   blue: 'ring-2 ring-blue',
 };
 
-export default function DiscardAllModal({ open, hand, onSelect }: DiscardAllModalProps) {
+export default function DiscardAllModal({ open, hand, presetColor, onSelect }: DiscardAllModalProps) {
   const [selectedColor, setSelectedColor] = useState<Exclude<CardColor, 'wild'> | null>(null);
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
+
+  // Auto-select the preset color when modal opens
+  const isPreset = presetColor !== null;
+  useEffect(() => {
+    if (open && presetColor) {
+      setSelectedColor(presetColor);
+      const colorCards = hand.filter((c) => c.color === presetColor).map((c) => c.id);
+      setSelectedCardIds(colorCards);
+    } else if (!open) {
+      setSelectedColor(null);
+      setSelectedCardIds([]);
+    }
+  }, [open, presetColor, hand]);
 
   const matchingCards = useMemo(() => {
     if (!selectedColor) return [];
@@ -35,13 +49,12 @@ export default function DiscardAllModal({ open, hand, onSelect }: DiscardAllModa
   }, [hand, selectedColor]);
 
   const handleColorClick = (color: Exclude<CardColor, 'wild'>) => {
+    if (isPreset) return; // color is fixed from the card
     if (selectedColor === color) {
-      // Toggle back: deselect color
       setSelectedColor(null);
       setSelectedCardIds([]);
     } else {
       setSelectedColor(color);
-      // Pre-select all matching cards
       const colorCards = hand.filter((c) => c.color === color).map((c) => c.id);
       setSelectedCardIds(colorCards);
     }
@@ -57,9 +70,7 @@ export default function DiscardAllModal({ open, hand, onSelect }: DiscardAllModa
 
   const handleConfirm = () => {
     if (!selectedColor) return;
-    if (selectedCardIds.length > 0) {
-      onSelect(selectedColor, selectedCardIds);
-    }
+    onSelect(selectedColor, selectedCardIds);
     setSelectedColor(null);
     setSelectedCardIds([]);
   };
@@ -69,28 +80,35 @@ export default function DiscardAllModal({ open, hand, onSelect }: DiscardAllModa
     setSelectedCardIds([]);
   };
 
-  return (
-    <Modal
-      open={open}
-      title="Discard — Pick Color & Select Cards"
-      onClose={handleCancel}
-    >
-      <p className="text-textMuted text-sm mb-4 text-center">
-        Pick a color, then select which cards of that color to discard.
-      </p>
+  return (      <Modal
+        open={open}
+        title="Discard — Select Cards to Discard"
+        onClose={handleCancel}
+      >
+        <p className="text-textMuted text-sm mb-4 text-center">
+          Select cards of <span className={`font-semibold ${presetColor === 'yellow' ? 'text-black' : 'text-white'}`}>{presetColor?.toUpperCase()}</span> to discard, or play the card alone.
+        </p>
 
-      {/* Color picker */}
-      <div className="flex gap-3 justify-center mb-5">
-        {COLORS.map((color) => (
-          <button
-            key={color}
-            onClick={() => handleColorClick(color)}
-            className={`w-12 h-12 rounded-xl transition-all duration-200 cursor-pointer ${
-              colorMap[color]
-            } ${selectedColor === color ? 'scale-110 ring-2 ring-white' : 'opacity-70 hover:opacity-100'}`}
-          />
-        ))}
-      </div>
+      {/* Color indicator — preset from card or picker for legacy */}
+      {isPreset ? (
+        <div className="flex gap-3 justify-center mb-5">
+          <div className={`w-12 h-12 rounded-xl ${colorMap[presetColor ?? '']} scale-110 ring-2 ring-white flex items-center justify-center`}>
+            <span className="text-white text-[10px] font-bold uppercase tracking-wider">{presetColor}</span>
+          </div>
+        </div>
+      ) : (
+        <div className="flex gap-3 justify-center mb-5">
+          {COLORS.map((color) => (
+            <button
+              key={color}
+              onClick={() => handleColorClick(color)}
+              className={`w-12 h-12 rounded-xl transition-all duration-200 cursor-pointer ${
+                colorMap[color]
+              } ${selectedColor === color ? 'scale-110 ring-2 ring-white' : 'opacity-70 hover:opacity-100'}`}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Cards of selected color */}
       {selectedColor && (
@@ -153,14 +171,14 @@ export default function DiscardAllModal({ open, hand, onSelect }: DiscardAllModa
       <div className="flex gap-3 justify-center">
         <button
           onClick={handleConfirm}
-          disabled={!selectedColor || selectedCardIds.length === 0}
+          disabled={!selectedColor}
           className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 cursor-pointer ${
-            selectedColor && selectedCardIds.length > 0
+            selectedColor
               ? 'bg-gradient-to-r from-neonPink to-neonOrange text-white shadow-lg'
               : 'bg-bgTertiary/50 text-textMuted/30 cursor-not-allowed'
           }`}
         >
-          Discard {selectedCardIds.length > 0 ? `${selectedCardIds.length}` : ''}
+          {selectedCardIds.length > 0 ? `Discard ${selectedCardIds.length}` : 'Play Card Only'}
         </button>
         <button
           onClick={handleCancel}

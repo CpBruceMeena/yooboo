@@ -217,7 +217,7 @@ function GameContent() {
     handleEmote, handleLeave, clearToast, cancelColor,
     isMyTurn, isLoading,
     smileyReveal, clearSmileyReveal,
-    discardHandCards,
+    discardHandCards, pendingDiscardColor,
     unoCall, clearUnoCall,
   } = useGame();
 
@@ -273,11 +273,17 @@ function GameContent() {
 
   // Track direction change for reverse animation + sound
   const prevDirectionRef = useRef(gameState?.direction);
+  const reverseFlashTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [reverseFlash, setReverseFlash] = useState(false);
   useEffect(() => {
     if (gameState && prevDirectionRef.current !== undefined && prevDirectionRef.current !== gameState.direction) {
       playSound('reverse');
+      setReverseFlash(true);
+      clearTimeout(reverseFlashTimerRef.current);
+      reverseFlashTimerRef.current = setTimeout(() => setReverseFlash(false), 1200);
     }
     prevDirectionRef.current = gameState?.direction;
+    return () => clearTimeout(reverseFlashTimerRef.current);
   }, [gameState?.direction, playSound]);
 
   // Sound on my turn
@@ -424,6 +430,7 @@ function GameContent() {
         toast={toast}
         onToastDismiss={clearToast}
         discardHandCards={discardHandCards}
+        discardPresetColor={pendingDiscardColor}
       />
 
       {/* Smiley animated reveal overlay */}
@@ -450,6 +457,44 @@ function GameContent() {
             transition={{ duration: 0.8, ease: 'easeOut' }}
             className="fixed inset-0 z-40 pointer-events-none bg-gradient-to-br from-wild/20 via-purple-500/10 to-red-500/20"
           />
+        )}
+      </AnimatePresence>
+
+      {/* Direction reversal popup */}
+      <AnimatePresence>
+        {reverseFlash && (
+          <motion.div
+            key="reverse-popup"
+            initial={{ opacity: 0, scale: 0.5, rotate: -180 }}
+            animate={{ opacity: [0, 1, 1, 0], scale: [0.5, 1.3, 1, 0.8], rotate: 0 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            transition={{ duration: 1.2, times: [0, 0.15, 0.5, 1], ease: 'easeOut' }}
+            className="fixed inset-0 z-40 pointer-events-none flex items-center justify-center"
+          >
+            <motion.div
+              className="flex items-center gap-4 px-8 py-4 rounded-2xl bg-bgSecondary/80 backdrop-blur-md border-2 border-accent/50 shadow-2xl"
+              animate={{ rotate: [0, -5, 5, -3, 3, 0] }}
+              transition={{ duration: 0.6, ease: 'easeInOut' }}
+            >
+              <motion.span
+                className="text-4xl"
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+              >
+                🔄
+              </motion.span>
+              <span className="text-3xl font-black text-white tracking-wider drop-shadow-lg">
+                REVERSE!
+              </span>
+              <motion.span
+                className="text-lg text-accent font-mono"
+                animate={{ opacity: [0, 1, 0] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
+                {gameState?.direction === 1 ? '→' : '←'}
+              </motion.span>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 

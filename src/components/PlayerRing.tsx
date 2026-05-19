@@ -73,9 +73,8 @@ export default function PlayerRing({ gameState, currentPlayerId }: PlayerRingPro
             seatPos = 'right';
             break;
           case 'bottom':
-            posClass = 'bottom-24 left-1/2 -translate-x-1/2';
-            seatPos = 'bottom';
-            break;
+            // Bottom player is rendered alongside PlayerHandTray in GameTable
+            return null;
           default:
             posClass = 'top-4 left-1/2 -translate-x-1/2';
         }

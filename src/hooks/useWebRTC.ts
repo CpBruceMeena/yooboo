@@ -55,6 +55,7 @@ export function useWebRTC(): WebRTCReturn {
   const [roomId, setRoomId] = useState<string | null>(null);
   const [unoCall, setUnoCall] = useState<{ playerId: string; playerName: string } | null>(null);
   const pendingJoinRef = useRef<{ roomId: string; playerName: string } | null>(null);
+  const joinedRoomRef = useRef<{ roomId: string; playerName: string } | null>(null);
 
   useEffect(() => {
     // Smart connection: localhost → direct to server port (WebSocket works)
@@ -79,11 +80,19 @@ export function useWebRTC(): WebRTCReturn {
       console.log('socket connected', socket.id, 'to', socketUrl);
       setConnected(true);
       setError(null);
+      // Priority 1: pending join (first-time connect, room not yet joined)
       if (pendingJoinRef.current) {
         const { roomId, playerName } = pendingJoinRef.current;
         console.log('emitting pending join_room after connect', roomId, playerName);
         socket.emit('join_room', { roomId, playerName });
         pendingJoinRef.current = null;
+        return;
+      }
+      // Priority 2: re-join after reconnect (socket reconnected but server cleaned us up)
+      if (joinedRoomRef.current) {
+        const { roomId, playerName } = joinedRoomRef.current;
+        console.log('re-joining room after reconnect', roomId, playerName);
+        socket.emit('join_room', { roomId, playerName });
       }
     });
     socket.on('disconnect', () => setConnected(false));
@@ -108,7 +117,6 @@ export function useWebRTC(): WebRTCReturn {
       console.log('room_joined', data.roomId, data.players.map(p => p.name));
       setRoomId(data.roomId);
       setLobbyPlayers(data.players);
-      // Clear pending join since we successfully joined
       pendingJoinRef.current = null;
     });
 
@@ -176,10 +184,12 @@ export function useWebRTC(): WebRTCReturn {
   const joinRoom = useCallback((roomId: string, name: string) => {
     const socket = socketRef.current;
     console.log('joinRoom called', roomId, name, 'connected=', socket?.connected);
+    const joinData = { roomId, playerName: name };
+    joinedRoomRef.current = joinData;
     if (socket?.connected) {
-      socket.emit('join_room', { roomId, playerName: name });
+      socket.emit('join_room', joinData);
     } else {
-      pendingJoinRef.current = { roomId, playerName: name };
+      pendingJoinRef.current = joinData;
     }
   }, []);
 
@@ -218,6 +228,7 @@ export function useWebRTC(): WebRTCReturn {
   const leaveRoom = useCallback(() => {
     socketRef.current?.emit('leave_room');
     pendingJoinRef.current = null;
+    joinedRoomRef.current = null;
     setGameState(null);
     setLobbyPlayers([]);
     setRoomId(null);

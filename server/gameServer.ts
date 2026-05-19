@@ -89,6 +89,48 @@ export function setupGameServer(httpServer: HTTPServer) {
       }
 
       if (room.state && room.state.status === 'in_game') {
+        // Allow reconnection: check if player name matches an existing player
+        const existingPlayer = room.state.players.find(p => p.name === playerName);
+        if (existingPlayer) {
+          console.log('reconnect: player rejoining active game', playerName, roomId);
+          existingPlayer.connected = true;
+
+          // Clean up any stale socket mapping for this player
+          for (const [existingSid, existingPid] of room.clients) {
+            if (existingPid === existingPlayer.id) {
+              room.clients.delete(existingSid);
+              clientMap.delete(existingSid);
+              break;
+            }
+          }
+
+          // Remove from lobby if present
+          room.lobbyPlayers = room.lobbyPlayers.filter((p) => p.id !== existingPlayer.id);
+
+          // Assign new socket
+          socket.join(roomId);
+          room.clients.set(socket.id, existingPlayer.id);
+          clientMap.set(socket.id, { playerId: existingPlayer.id, playerName, roomId });
+
+          socket.emit('you_are', { playerId: existingPlayer.id, playerName });
+
+          // Send current game state (with full hand for this player)
+          const privateState = {
+            ...room.state,
+            players: room.state.players.map((p) => ({
+              ...p,
+              hand: p.id === existingPlayer.id ? p.hand : [],
+              handSize: p.hand.length,
+            })),
+          };
+          socket.emit('state_update', { state: privateState });
+
+          // Notify other players that this player reconnected
+          socket.to(roomId).emit('player_joined', { playerId: existingPlayer.id, playerName });
+
+          return;
+        }
+
         socket.emit('invalid_move', { reason: 'Game already in progress' });
         return;
       }
@@ -325,20 +367,17 @@ export function setupGameServer(httpServer: HTTPServer) {
       const player = state.players.find((p) => p.id === info.playerId);
       if (!player) return;
 
-      // Discard does NOT change activeColor — the discardAll card (wild) stays on top,
-      // so the next player must match by discardAll type OR the chosen color.
-      // If specific card IDs provided, only discard those; otherwise discard all of that color
+      // The discardAll card is already on the discard pile (played via play_card).
+      // The card's color is the active color.
+      // If specific card IDs provided, only discard those specific cards.
+      // If cardIds is empty or undefined, the player just played the discard card alone — no cards discarded.
       if (cardIds && cardIds.length > 0) {
-        // Partial discard: only remove the selected cards
         player.hand = player.hand.filter((c) => !cardIds.includes(c.id));
-      } else {
-        // Full discard: remove all cards of the chosen color
-        player.hand = player.hand.filter((c) => c.color !== color);
       }
+      // else: no cards to discard — just the discardAll card on top
 
       // Discarded cards are removed from the game (not added to discard pile)
-      // The discardAll card remains on top of the discard pile so the next player
-      // must match by discardAll type OR the chosen color
+      // The discardAll card remains on top of the discard pile
 
       const elimId = checkElimination(state);
       if (elimId) {
@@ -407,7 +446,8 @@ export function setupGameServer(httpServer: HTTPServer) {
           const player = room.state?.players.find((p) => p.id === info.playerId);
           if (player) player.connected = false;
           socket.to(info.roomId).emit('player_disconnected', { playerId: info.playerId });
-          if (room.clients.size === 0) {
+          // Don't delete room if a game is in progress — players may reconnect
+          if (room.clients.size === 0 && (!room.state || room.state.status !== 'in_game')) {
             rooms.delete(info.roomId);
           }
         }
