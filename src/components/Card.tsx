@@ -8,34 +8,29 @@ interface CardProps {
   value?: number;
   state?: 'default' | 'playable' | 'selected' | 'disabled';
   onClick?: () => void;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-const colorMap: Record<string, string> = {
-  red: 'bg-red text-white',
-  yellow: 'bg-yellow text-black',
-  green: 'bg-green text-white',
-  blue: 'bg-blue text-white',
-  wild: 'bg-wild text-white',
+const sizeMap: Record<string, string> = {
+  sm: 'w-14 h-20 text-xs',
+  md: 'w-20 h-28',
+  lg: 'w-24 h-32 text-lg',
 };
 
-const colorBorderMap: Record<string, string> = {
-  red: 'border-red',
-  yellow: 'border-yellow',
-  green: 'border-green',
-  blue: 'border-blue',
-  wild: 'border-wild',
+const colorGradients: Record<string, string> = {
+  red: 'bg-gradient-to-br from-red to-red/70',
+  yellow: 'bg-gradient-to-br from-yellow to-yellow/70',
+  green: 'bg-gradient-to-br from-green to-green/70',
+  blue: 'bg-gradient-to-br from-blue to-blue/70',
+  wild: 'bg-gradient-to-br from-wild to-purple-600',
 };
 
-const glowMap: Record<string, string> = {
-  wild: 'shadow-[0_0_12px_rgba(122,77,255,0.6)]',
-  red: 'shadow-[0_0_12px_rgba(228,71,71,0.6)]',
-};
-
-const stateStyles: Record<string, string> = {
-  default: '',
-  playable: 'cursor-pointer hover:-translate-y-4 transition-transform duration-150 hover:shadow-[0_8px_24px_rgba(247,248,250,0.25)]',
-  selected: '-translate-y-6 shadow-[0_8px_24px_rgba(247,248,250,0.3)]',
-  disabled: 'opacity-40 cursor-not-allowed',
+const colorGlows: Record<string, string> = {
+  red: 'shadow-[0_0_12px_rgba(228,71,71,0.4)]',
+  yellow: 'shadow-[0_0_12px_rgba(243,199,66,0.4)]',
+  green: 'shadow-[0_0_12px_rgba(51,181,107,0.4)]',
+  blue: 'shadow-[0_0_12px_rgba(52,120,246,0.4)]',
+  wild: 'shadow-[0_0_14px_rgba(122,77,255,0.5)]',
 };
 
 const symbolMap: Record<string, string> = {
@@ -50,33 +45,53 @@ const symbolMap: Record<string, string> = {
   smiley: '😊',
 };
 
-export default function Card({ type, color, value, state = 'default', onClick }: CardProps) {
-  const bg = color === 'wild' ? 'bg-wild' : `bg-${color}`;
-  const borderColor = color === 'wild' ? 'border-wild' : `border-${color}`;
-  const textColor = color === 'yellow' ? 'text-black' : 'text-white';
-
+export default function Card({ type, color, value, state = 'default', onClick, size = 'md' }: CardProps) {
   const isPlayable = state === 'playable';
   const isSelected = state === 'selected';
   const isDisabled = state === 'disabled';
+  const isWild = color === 'wild';
+
+  const symbol = type === 'number' ? value : symbolMap[type] ?? '?';
+  const textColor = color === 'yellow' ? 'text-black' : 'text-white';
 
   return (
     <div
       onClick={isPlayable || isSelected ? onClick : undefined}
       className={`
-        relative w-20 h-28 rounded-xl border-2 flex flex-col items-center justify-center
-        font-bold transition-all duration-150 cursor-pointer shrink-0
-        ${bg} ${textColor} ${borderColor}
-        ${glowMap[color] ?? ''}
-        ${isPlayable ? 'cursor-pointer hover:-translate-y-4 transition-transform duration-150 hover:shadow-[0_8px_24px_rgba(247,248,250,0.25)]' : ''}
-        ${isSelected ? '-translate-y-6 shadow-[0_8px_24px_rgba(247,248,250,0.3)]' : ''}
-        ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}
+        relative rounded-xl border-2 flex flex-col items-center justify-center
+        font-bold transition-all duration-200 cursor-pointer shrink-0 select-none
+        ${sizeMap[size]}
+        ${colorGradients[color] ?? 'bg-bgTertiary'}
+        ${textColor}
+        border-white/15
+        ${colorGlows[color] ?? ''}
+        ${isPlayable ? 'cursor-pointer hover:-translate-y-5 hover:scale-105 hover:shadow-[0_12px_32px_rgba(247,248,250,0.2)]' : ''}
+        ${isSelected ? '-translate-y-7 scale-105 shadow-[0_12px_32px_rgba(247,248,250,0.3)]' : ''}
+        ${isDisabled ? 'opacity-35 cursor-not-allowed grayscale-[30%]' : ''}
       `}
     >
-      <span className="absolute top-1 left-2 text-xs">{type === 'number' ? value : symbolMap[type] ?? type}</span>
-      <span className="text-2xl">
-        {type === 'number' ? value : symbolMap[type] ?? '?'}
+      {/* Inner card shine effect */}
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
+
+      {/* Corner badge top-left */}
+      <span className={`absolute top-1 left-1.5 text-[10px] ${size === 'sm' ? 'hidden' : ''} leading-none`}>
+        {symbol}
       </span>
-      <span className="absolute bottom-1 right-2 text-xs rotate-180">{type === 'number' ? value : symbolMap[type] ?? type}</span>
+
+      {/* Center symbol */}
+      <span className={`relative z-10 ${size === 'sm' ? 'text-lg' : 'text-3xl'} drop-shadow-lg`}>
+        {symbol}
+      </span>
+
+      {/* Wild diamond pattern overlay */}
+      {isWild && (
+        <div className="absolute inset-1 rounded-[10px] border border-white/20 pointer-events-none" />
+      )}
+
+      {/* Corner badge bottom-right (rotated) */}
+      <span className={`absolute bottom-1 right-1.5 text-[10px] ${size === 'sm' ? 'hidden' : ''} rotate-180 leading-none`}>
+        {symbol}
+      </span>
     </div>
   );
 }
