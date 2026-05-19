@@ -62,7 +62,7 @@ const rules: Rule[] = [
   {
     icon: '😊',
     title: 'SMILEY',
-    text: 'Pick a color — next player draws until they hit it. Cannot be stacked.',
+    text: 'Pick a color — next player draws cards one by one (animated reveal) until they hit the chosen color. If hand hits 25+ cards during the draw, they are eliminated on the spot. Cannot be stacked.',
     hex1: '#FF2E9A',
     hex2: '#7A4DFF',
     bgClass: 'from-neonPink/20 to-wild/10',
