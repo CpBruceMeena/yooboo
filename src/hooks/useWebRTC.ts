@@ -84,6 +84,8 @@ export function useWebRTC(): UseWebRTCReturn {
       console.log('room_joined', data.roomId, data.players.map(p => p.name));
       setRoomId(data.roomId);
       setLobbyPlayers(data.players);
+      // Clear pending join since we successfully joined
+      pendingJoinRef.current = null;
     });
 
     socket.on('player_joined', (data: { playerId: string; playerName: string }) => {
@@ -173,6 +175,7 @@ export function useWebRTC(): UseWebRTCReturn {
 
   const leaveRoom = useCallback(() => {
     socketRef.current?.emit('leave_room');
+    pendingJoinRef.current = null;
     setGameState(null);
     setLobbyPlayers([]);
     setRoomId(null);
