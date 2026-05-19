@@ -84,7 +84,7 @@ export default function PlayerRing({ gameState, currentPlayerId }: PlayerRingPro
           <div key={player.id} className={`absolute pointer-events-auto ${posClass}`}>
             <PlayerSeat
               player={player}
-              cardCount={player.hand.length}
+              cardCount={player.handSize ?? player.hand.length}
               state={state as any}
               isCurrentPlayer={isCurrent}
               position={seatPos}

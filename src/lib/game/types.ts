@@ -27,6 +27,7 @@ export interface Player {
   id: string;
   name: string;
   hand: Card[];
+  handSize?: number;
   isEliminated: boolean;
   saidUno: boolean;
   connected: boolean;

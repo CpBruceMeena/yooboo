@@ -148,6 +148,7 @@ export function setupGameServer(httpServer: HTTPServer) {
                 players: room.state.players.map((p) => ({
                   ...p,
                   hand: p.id === player.id ? p.hand : [],
+                  handSize: p.hand.length,
                 })),
               };
               console.log('start_game emitting state_update to', sid, 'for player', player.name);
@@ -352,6 +353,7 @@ function broadcastState(room: Room, io: SocketIOServer) {
         players: room.state.players.map((p) => ({
           ...p,
           hand: p.id === player.id ? p.hand : [],
+          handSize: p.hand.length,
         })),
       };
       console.log('Emitting state_update to', sid, 'for player', player.name);

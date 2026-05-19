@@ -121,6 +121,152 @@ export default function HomePage() {
           <p className="text-[11px] text-textMuted/30">Press Enter to join or create a room</p>
         </div>
       </div>
+
+      {/* Rule Book */}
+      <div className="mt-6 w-full max-w-sm">
+        <details className="group">
+          <summary className="flex items-center justify-between gap-2 px-4 py-3 rounded-xl bg-bgSecondary/60 border border-textMuted/10 cursor-pointer hover:bg-bgSecondary/80 transition-colors text-sm text-textMuted hover:text-textPrimary">
+            <span className="flex items-center gap-2">
+              <span className="text-base">📖</span>
+              <span className="font-semibold">Rules &amp; How to Play</span>
+            </span>
+            <svg className="w-4 h-4 transition-transform duration-200 group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div className="mt-3 px-4 py-4 rounded-xl bg-bgSecondary/40 border border-textMuted/5 text-sm text-textMuted space-y-5 max-h-[50vh] overflow-y-auto scrollbar-thin animate-slide-up">
+            
+            {/* Goal */}
+            <section>
+              <h3 className="text-textPrimary font-bold text-sm mb-2 flex items-center gap-2">
+                <span>🎯</span> Goal
+              </h3>
+              <p className="text-textMuted/80 text-xs leading-relaxed">
+                Be the first to reach <strong className="text-textPrimary">0 cards</strong> or be the <strong className="text-textPrimary">last player standing</strong>.
+                Eliminated when you reach <strong className="text-danger">≥ 25 cards</strong>.
+              </p>
+            </section>
+
+            {/* How to Play */}
+            <section>
+              <h3 className="text-textPrimary font-bold text-sm mb-2 flex items-center gap-2">
+                <span>🎮</span> How to Play
+              </h3>
+              <ol className="text-xs text-textMuted/80 space-y-1.5 list-decimal list-inside leading-relaxed">
+                <li>Match the top card on the discard pile by <strong className="text-textPrimary">color</strong> or <strong className="text-textPrimary">type</strong></li>
+                <li>If you can't play, draw a card — then you may play any card</li>
+                <li>Play all your cards to win!</li>
+              </ol>
+            </section>
+
+            {/* Card Types */}
+            <section>
+              <h3 className="text-textPrimary font-bold text-sm mb-2 flex items-center gap-2">
+                <span>🃏</span> Card Types
+              </h3>
+              <div className="space-y-1.5">
+                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-bgTertiary/30">
+                  <span className="shrink-0 w-7 h-7 rounded-md bg-gradient-to-br from-red to-red/70 flex items-center justify-center text-white text-xs font-bold shadow">⟳</span>
+                  <div>
+                    <span className="text-textPrimary text-xs font-semibold">Reverse</span>
+                    <p className="text-textMuted/60 text-[11px]">Flips the direction of play</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-bgTertiary/30">
+                  <span className="shrink-0 w-7 h-7 rounded-md bg-gradient-to-br from-green to-green/70 flex items-center justify-center text-white text-xs font-bold shadow">+2</span>
+                  <div>
+                    <span className="text-textPrimary text-xs font-semibold">+2</span>
+                    <p className="text-textMuted/60 text-[11px]">Next player draws 2 cards <span className="text-textMuted/40">(can stack)</span></p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-bgTertiary/30">
+                  <span className="shrink-0 w-7 h-7 rounded-md bg-gradient-to-br from-wild to-purple-600 flex items-center justify-center text-white text-xs font-bold shadow">+4</span>
+                  <div>
+                    <span className="text-textPrimary text-xs font-semibold">+4 (Wild)</span>
+                    <p className="text-textMuted/60 text-[11px]">Next player draws 4 + choose any color <span className="text-textMuted/40">(can stack)</span></p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-bgTertiary/30">
+                  <span className="shrink-0 w-7 h-7 rounded-md bg-gradient-to-br from-wild via-purple-500 to-red-500 flex items-center justify-center text-white text-xs font-bold shadow">+6</span>
+                  <div>
+                    <span className="text-textPrimary text-xs font-semibold">+6 (Wild)</span>
+                    <p className="text-textMuted/60 text-[11px]">Next player draws 6 + choose any color <span className="text-textMuted/40">(can stack)</span></p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-bgTertiary/30">
+                  <span className="shrink-0 w-7 h-7 rounded-md bg-gradient-to-br from-wild via-red-500 to-orange-500 flex items-center justify-center text-white text-xs font-bold shadow">+10</span>
+                  <div>
+                    <span className="text-textPrimary text-xs font-semibold">+10 (Wild)</span>
+                    <p className="text-textMuted/60 text-[11px]">Next player draws 10 + choose any color <span className="text-textMuted/40">(can stack)</span></p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-bgTertiary/30">
+                  <span className="shrink-0 w-7 h-7 rounded-md bg-gradient-to-br from-wild to-purple-600 flex items-center justify-center text-white text-xs font-bold shadow">⟳+4</span>
+                  <div>
+                    <span className="text-textPrimary text-xs font-semibold">Reverse +4 (Wild)</span>
+                    <p className="text-textMuted/60 text-[11px]">Flips direction + next player draws 4 <span className="text-textMuted/40">(can stack)</span></p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-bgTertiary/30">
+                  <span className="shrink-0 w-7 h-7 rounded-md bg-gradient-to-br from-blue to-blue/70 flex items-center justify-center text-white text-xs font-bold shadow">⊘</span>
+                  <div>
+                    <span className="text-textPrimary text-xs font-semibold">Skip Everyone</span>
+                    <p className="text-textMuted/60 text-[11px]">You play again (all opponents skipped)</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-bgTertiary/30">
+                  <span className="shrink-0 w-7 h-7 rounded-md bg-gradient-to-br from-yellow to-yellow/70 flex items-center justify-center text-black text-xs font-bold shadow">🗑</span>
+                  <div>
+                    <span className="text-textPrimary text-xs font-semibold">Discard All</span>
+                    <p className="text-textMuted/60 text-[11px]">Choose a color — discard ALL cards of that color</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2.5 p-2 rounded-lg bg-bgTertiary/30">
+                  <span className="shrink-0 w-7 h-7 rounded-md bg-gradient-to-br from-pink-400 via-wild to-blue-400 flex items-center justify-center text-white text-xs font-bold shadow">😊</span>
+                  <div>
+                    <span className="text-textPrimary text-xs font-semibold">Smiley (Wild)</span>
+                    <p className="text-textMuted/60 text-[11px]">Choose a color — next player draws until they hit that color! <span className="text-textMuted/40">(cannot stack)</span></p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Stacking Rules */}
+            <section>
+              <h3 className="text-textPrimary font-bold text-sm mb-2 flex items-center gap-2">
+                <span>📐</span> Stacking Rules
+              </h3>
+              <p className="text-xs text-textMuted/80 mb-2 leading-relaxed">
+                When a <strong className="text-textPrimary">+2, +4, +6, +10, or Reverse+4</strong> is played, the next player can
+                <strong className="text-textPrimary"> counter-stack</strong> with the <strong className="text-textPrimary">same card type</strong>.
+              </p>
+              <div className="text-xs bg-bgTertiary/40 p-2.5 rounded-lg text-textMuted/70 leading-relaxed">
+                <p className="font-medium text-textPrimary mb-1">Example:</p>
+                <p>Player A plays +4 → B plays +4 → C draws <strong className="text-textPrimary">8 cards!</strong></p>
+              </div>
+              <ul className="text-xs text-textMuted/80 mt-2 space-y-1 list-disc list-inside leading-relaxed">
+                <li><span className="text-success">✓</span> <strong className="text-textPrimary">Skip Everyone</strong> cannot be played during a stack</li>
+                <li><span className="text-success">✓</span> <strong className="text-textPrimary">Discard All</strong> cannot be played during a stack</li>
+                <li><span className="text-success">✓</span> <strong className="text-textPrimary">Smiley</strong> can be played during a stack (passes it forward)</li>
+              </ul>
+            </section>
+
+            {/* Turns */}
+            <section>
+              <h3 className="text-textPrimary font-bold text-sm mb-2 flex items-center gap-2">
+                <span>🔄</span> Turn Structure
+              </h3>
+              <ol className="text-xs text-textMuted/80 space-y-1.5 list-decimal list-inside leading-relaxed">
+                <li>Play a matching card (same color, type, or value)</li>
+                <li>Or <strong className="text-textPrimary">draw 1 card</strong> — then you may play any card from your hand</li>
+                <li>If you're under a stack, you can counter-stack or draw the full penalty</li>
+              </ol>
+            </section>
+
+          </div>
+        </details>
+      </div>
+
     </div>
   );
 }
