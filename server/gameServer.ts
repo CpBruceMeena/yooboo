@@ -75,6 +75,7 @@ export function setupGameServer(httpServer: HTTPServer) {
   const clientMap = new Map<string, ClientInfo>();
 
   io.on('connection', (socket: Socket) => {
+    console.log('Socket connected:', socket.id);
     socket.on('join_room', ({ roomId, playerName }: { roomId: string; playerName: string }) => {
       if (!roomId || !playerName) {
         socket.emit('invalid_move', { reason: 'roomId and playerName required' });
@@ -105,7 +106,10 @@ export function setupGameServer(httpServer: HTTPServer) {
         players: room.lobbyPlayers.map((p) => ({ id: p.id, name: p.name, hand: [] })),
       });
 
+      console.log('room_joined emitted for', roomId, 'players', room.lobbyPlayers.map(p => p.name));
+
       socket.to(roomId).emit('player_joined', { playerId, playerName });
+      console.log('player_joined broadcast for', playerName, 'in room', roomId);
     });
 
     socket.on('start_game', () => {
@@ -120,29 +124,44 @@ export function setupGameServer(httpServer: HTTPServer) {
         return { id: pid, name: cinfo?.playerName ?? 'Unknown' };
       });
 
-      if (players.length < 2) {
-        socket.emit('invalid_move', { reason: 'Need at least 2 players' });
-        return;
-      }
+      console.log('start_game requested by', socket.id, 'room', info.roomId, 'playersCount', players.length, 'players', players.map(p => p.name));
 
-      room.lobbyPlayers = [];
-      room.state = createInitialState(info.roomId, players);
+      try {
+        if (players.length < 2) {
+          socket.emit('invalid_move', { reason: 'Need at least 2 players' });
+          return;
+        }
 
-      for (const sid of room.clients.keys()) {
-        const cInfo = clientMap.get(sid);
-        if (cInfo) {
-          const player = room.state.players.find((p) => p.id === cInfo.playerId);
-          if (player) {
-            const privateState = {
-              ...room.state,
-              players: room.state.players.map((p) => ({
-                ...p,
-                hand: p.id === player.id ? p.hand : [],
-              })),
-            };
-            io.to(sid).emit('state_update', { state: privateState });
+        room.lobbyPlayers = [];
+        room.state = createInitialState(info.roomId, players);
+        console.log('start_game room.clients entries', Array.from(room.clients.entries()));
+
+        for (const sid of room.clients.keys()) {
+          const cInfo = clientMap.get(sid);
+          console.log('start_game loop sid', sid, 'cInfo', cInfo);
+          if (cInfo) {
+            const player = room.state.players.find((p) => p.id === cInfo.playerId);
+            console.log('start_game found player', player?.name, 'for', cInfo.playerId);
+            if (player) {
+              const privateState = {
+                ...room.state,
+                players: room.state.players.map((p) => ({
+                  ...p,
+                  hand: p.id === player.id ? p.hand : [],
+                })),
+              };
+              console.log('start_game emitting state_update to', sid, 'for player', player.name);
+              io.to(sid).emit('state_update', { state: privateState });
+            } else {
+              console.log('start_game could not find player for cInfo', cInfo);
+            }
+          } else {
+            console.log('start_game missing client info for socket id', sid);
           }
         }
+      } catch (err) {
+        console.error('Error in start_game handler:', err);
+        socket.emit('invalid_move', { reason: 'Server error starting game' });
       }
     });
 
@@ -323,6 +342,7 @@ function broadcastState(room: Room, io: SocketIOServer) {
           hand: p.id === player.id ? p.hand : [],
         })),
       };
+      console.log('Emitting state_update to', sid, 'for player', player.name);
       io.to(sid).emit('state_update', { state: privateState });
     }
   }
