@@ -291,6 +291,9 @@ export function setupGameServer(httpServer: HTTPServer) {
       const player = state.players.find((p) => p.id === info.playerId);
       if (!player) return;
 
+      // Update active color to the chosen discard color
+      state.activeColor = color;
+
       const toDiscard = player.hand.filter((c) => c.color === color);
       player.hand = player.hand.filter((c) => c.color !== color);
       state.discardPile.push(...toDiscard);
@@ -309,6 +312,20 @@ export function setupGameServer(httpServer: HTTPServer) {
         nextTurn(state);
       }
 
+      broadcastState(room, io);
+    });
+
+    socket.on('skip_turn', () => {
+      const info = clientMap.get(socket.id);
+      if (!info) return;
+      const room = rooms.get(info.roomId);
+      if (!room || !room.state) return;
+      const state = room.state;
+      const playerIdx = state.players.findIndex((p) => p.id === info.playerId);
+      if (playerIdx === -1 || state.currentPlayerIndex !== playerIdx) return;
+
+      // Player chose to skip after drawing — advance turn
+      nextTurn(state);
       broadcastState(room, io);
     });
 

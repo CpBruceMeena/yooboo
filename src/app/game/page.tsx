@@ -210,7 +210,7 @@ function GameContent() {
     gameState, playerId, connected, error, lobbyPlayers, roomId: rtcRoomId,
     joinRoom, startGame,
     selectedCardId, showChangeColor, showDiscardAll, toast,
-    handleCardClick, handleDraw, handleSayUno,
+    handleCardClick, handleDraw, handleSkipTurn, handleSayUno,
     handleColorSelect, handleDiscardSelect,
     handleEmote, handleLeave, clearToast, cancelColor,
     isMyTurn, isLoading,
@@ -333,14 +333,15 @@ function GameContent() {
           onDraw={handleDrawClick}
           drawDisabled={hasDrawn || gameState.pendingDraw <= 0 || !isMyTurn}
           handDisabled={isGameFinished}
-          hasDrawn={hasDrawn}
         />
         <RightPanel
           onDraw={handleDrawClick}
+          onSkipTurn={handleSkipTurn}
           onSayUno={handleSayUno}
           onLeave={handleLeave}
           onEmote={handleEmote}
           disabled={!isMyTurn || isGameFinished}
+          hasDrawn={hasDrawn}
           unoEligible={!!unoEligible}
         />
       </div>

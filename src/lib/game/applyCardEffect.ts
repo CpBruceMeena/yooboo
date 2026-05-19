@@ -10,9 +10,17 @@ export function applyCardEffect(
 
   switch (card.type) {
     case 'number':
+      if (card.color !== 'wild') {
+        state.activeColor = card.color;
+        effects.push('color_change');
+      }
       break;
 
     case 'reverse': {
+      if (card.color !== 'wild') {
+        state.activeColor = card.color;
+        effects.push('color_change');
+      }
       if (state.players.filter((p) => !p.isEliminated).length === 2) {
         effects.push('skip');
         nextTurn(state);
@@ -24,6 +32,10 @@ export function applyCardEffect(
     }
 
     case 'plus2':
+      if (card.color !== 'wild') {
+        state.activeColor = card.color;
+        effects.push('color_change');
+      }
       state.pendingDraw += 2;
       state.pendingType = 'plus2';
       effects.push('stack');
@@ -65,6 +77,10 @@ export function applyCardEffect(
     }
 
     case 'skipEveryone':
+      if (card.color !== 'wild') {
+        state.activeColor = card.color;
+        effects.push('color_change');
+      }
       effects.push('skip_everyone');
       break;
 
