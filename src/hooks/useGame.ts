@@ -9,6 +9,7 @@ interface UseGameReturn {
   showChangeColor: boolean;
   showDiscardAll: boolean;
   pendingCardId: string | null;
+  pendingDiscardColor: Exclude<CardColor, 'wild'> | null;
   toast: { message: string; type: 'info' | 'success' | 'error' } | null;
   handleCardClick: (cardId: string) => void;
   handleDraw: () => void;
@@ -33,6 +34,7 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
   const [showChangeColor, setShowChangeColor] = useState(false);
   const [showDiscardAll, setShowDiscardAll] = useState(false);
   const [pendingCardId, setPendingCardId] = useState<string | null>(null);
+  const [pendingDiscardColor, setPendingDiscardColor] = useState<Exclude<CardColor, 'wild'> | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
   const [emotes, setEmotes] = useState<{ playerId: string; emote: string }[]>([]);
   const [selectedDiscardIds, setSelectedDiscardIds] = useState<string[]>([]);
@@ -63,6 +65,7 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
         // Play the discard card first (goes to discard pile), then show modal
         rtc.playCard(cardId);
         setPendingCardId(cardId);
+        setPendingDiscardColor(card.color as Exclude<CardColor, 'wild'>);
         setShowDiscardAll(true);
         setSelectedCardId(null);
         return;
@@ -102,6 +105,7 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
     rtc.discardColor(color, cardIds);
     setShowDiscardAll(false);
     setPendingCardId(null);
+    setPendingDiscardColor(null);
   }, [rtc]);
 
   const handleEmote = useCallback((emote: string) => {
@@ -127,6 +131,7 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
     showChangeColor,
     showDiscardAll,
     pendingCardId,
+    pendingDiscardColor,
     toast,
     handleCardClick,
     handleDraw,

@@ -145,13 +145,20 @@ export default function Card({ type, color, value, state = 'default', onClick, s
         </div>
       )}
 
-      {/* === +4 Card (wild) — classic wild with 4-point star burst */}
+      {/* === +4 Card (color-specific) — like +2 but draws 4 */}
+      {type === 'plus4' && !isWild && (
+        <div className="relative z-10 flex flex-col items-center">
+          <span className={`${size === 'sm' ? 'text-base' : 'text-xl'} font-black drop-shadow-lg`}>+4</span>
+          {size !== 'sm' && <span className={`text-[9px] mt-0.5 font-semibold opacity-80`}>DRAW 4</span>}
+        </div>
+      )}
+
+      {/* === Wild +4 (legacy) — kept for backward compat */}
       {type === 'plus4' && isWild && (
         <div className="relative z-10 flex flex-col items-center">
-          {/* 4-point burst */}
           <div className={`absolute border-2 border-white/30 rotate-45 rounded-sm opacity-60 pointer-events-none ${size === 'sm' ? 'w-7 h-7' : 'w-9 h-9'}`} />
           <span className={`${size === 'sm' ? 'text-base' : 'text-2xl'} font-black drop-shadow-lg`}>+4</span>
-          {size !== 'sm' && <span className={`text-[9px] mt-0.5 font-semibold opacity-80`}>DRAW</span>}
+          {size !== 'sm' && <span className={`text-[9px] mt-0.5 font-semibold opacity-80`}>WILD</span>}
         </div>
       )}
 

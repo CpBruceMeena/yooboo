@@ -45,8 +45,8 @@ export default function PlayerHandTray({
 }: PlayerHandTrayProps) {
   if (cards.length === 0) return null;
 
-  // More compact — use 'sm' size when 8+ cards to keep the tray compact
-  const cardSize = cards.length > 7 ? 'sm' : 'md';
+  // Always use compact card size to prevent overlap with the top player area
+  const cardSize = 'sm';
 
   return (
     <div className="flex justify-center px-2 pb-1.5 pt-0.5 overflow-x-auto scrollbar-thin">
@@ -83,17 +83,15 @@ export default function PlayerHandTray({
                     return (
                       <motion.div
                         key={card.id}
-                        layout
                         initial={{ opacity: 0, y: -30, scale: 0.6 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.6, y: 20 }}
                         transition={{
                           type: 'spring',
-                          stiffness: isPlayable ? 350 : 250,
-                          damping: isPlayable ? 20 : 28,
-                          mass: 0.7,
+                          stiffness: 350,
+                          damping: 22,
+                          mass: 0.6,
                         }}
-                        whileHover={isPlayable ? { y: -6, scale: 1.08 } : undefined}
                       >
                         <Card
                           type={card.type}

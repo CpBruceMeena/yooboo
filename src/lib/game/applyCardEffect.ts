@@ -42,11 +42,13 @@ export function applyCardEffect(
       break;
 
     case 'plus4':
-      state.activeColor = chosenColor ?? null;
+      if (card.color !== 'wild') {
+        state.activeColor = card.color;
+        effects.push('color_change');
+      }
       state.pendingDraw += 4;
       state.pendingType = 'plus4';
       effects.push('stack');
-      effects.push('color_change');
       break;
 
     case 'plus6':
@@ -85,6 +87,10 @@ export function applyCardEffect(
       break;
 
     case 'discardAll':
+      if (card.color !== 'wild') {
+        state.activeColor = card.color;
+        effects.push('color_change');
+      }
       effects.push('discard_all');
       break;
 

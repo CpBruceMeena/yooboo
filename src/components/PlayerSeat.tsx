@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
+import { useMemo } from 'react';
 import { Player } from '@/lib/game';
 
 interface PlayerSeatProps {
@@ -16,30 +17,25 @@ const positionStyles: Record<string, string> = {
   top: 'flex-col items-center',
   left: 'flex-row items-center',
   right: 'flex-row-reverse items-center',
-  bottom: 'flex-col items-center',
+  bottom: 'flex-row items-center',
 };
 
-const avatarColors = ['#E44747', '#F3C742', '#33B56B', '#3478F6', '#7A4DFF', '#FF6B6B', '#4CD97B', '#AAB2C0'];
-const avatarGradients = [
-  'from-red to-red/60',
-  'from-yellow to-yellow/60',
-  'from-green to-green/60',
-  'from-blue to-blue/60',
-  'from-wild to-purple-600/60',
-  'from-pink-500 to-pink-600/60',
-  'from-emerald-400 to-emerald-500/60',
-  'from-cyan-400 to-cyan-500/60',
-];
+const diceBearStyles = ['notionists-neutral', 'avataaars', 'bottts-neutral', 'lorelei-neutral', 'thumbs'] as const;
+
+function getAvatarUrl(name: string): string {
+  const styleIdx = name.length % diceBearStyles.length;
+  const style = diceBearStyles[styleIdx];
+  return `https://api.dicebear.com/9.x/${style}/svg?seed=${encodeURIComponent(name)}`;
+}
 
 export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, position = 'top' }: PlayerSeatProps) {
   const isEliminated = state === 'eliminated';
   const isUno = state === 'uno';
   const isActive = state === 'active';
-  const gradIdx = player.name.length % avatarGradients.length;
-  const avatarColor = avatarColors[player.name.length % avatarColors.length];
-  const avatarGrad = avatarGradients[gradIdx];
 
-  const isHorizontal = position === 'left' || position === 'right';
+  const isHorizontal = position === 'left' || position === 'right' || position === 'bottom';
+
+  const avatarUrl = useMemo(() => getAvatarUrl(player.name), [player.name]);
 
   return (
     <motion.div
@@ -48,13 +44,13 @@ export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, 
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: 'spring', stiffness: 200, damping: 20 }}
       className={`
-        flex gap-2.5 p-2.5 rounded-xl transition-colors duration-300
+        flex gap-2.5 p-2 rounded-xl transition-colors duration-300
         ${isEliminated ? 'opacity-35' : ''}
         ${isActive ? 'bg-bgTertiary/40' : ''}
         ${positionStyles[position]}
       `}
     >
-      <div className="relative">
+      <div className="relative shrink-0">
         {/* Avatar glow ring for active/current player */}
         {(isActive || isCurrentPlayer) && (
           <motion.div
@@ -85,14 +81,19 @@ export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, 
         )}
         <div
           className={`
-            relative w-11 h-11 rounded-full flex items-center justify-center text-base font-bold
-            transition-all duration-300 bg-gradient-to-br ${avatarGrad}
+            relative w-11 h-11 rounded-full overflow-hidden
+            transition-all duration-300 bg-bgTertiary
             ${isActive || isCurrentPlayer ? 'ring-2 ring-white/80' : 'ring-1 ring-white/15'}
             ${isUno ? 'ring-2 ring-success' : ''}
             ${isEliminated ? 'grayscale' : ''}
           `}
         >
-          {player.name.charAt(0).toUpperCase()}
+          <img
+            src={avatarUrl}
+            alt={`${player.name}'s avatar`}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
         </div>
         {isEliminated && (
           <motion.div

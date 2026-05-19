@@ -7,35 +7,33 @@ Uno-No-Mercy is a high-stakes Uno variant with stacking penalties, special cards
 
 ## 1. Card Deck Composition
 
-The deck consists of **120 cards** total:
+The deck consists of **152 cards** total:
 
-### Color Cards (96 cards)
-| Color | Number (0-9) | Reverse | +2 | Skip Everyone | Total Per Color |
-|---|---|---|---|---|---|
-| Red | 19 (1×0, 2×1-9) | 2 | 2 | 1 | 24 |
-| Yellow | 19 (1×0, 2×1-9) | 2 | 2 | 1 | 24 |
-| Green | 19 (1×0, 2×1-9) | 2 | 2 | 1 | 24 |
-| Blue | 19 (1×0, 2×1-9) | 2 | 2 | 1 | 24 |
+### Color Cards (128 cards)
+| Color | Number (0-9) | Reverse | +2 | +4 | Discard All | Skip Everyone | Total Per Color |
+|---|---|---|---|---|---|---|---|
+| Red | 19 (1×0, 2×1-9) | 2 | 2 | 4 | 4 | 1 | 32 |
+| Yellow | 19 (1×0, 2×1-9) | 2 | 2 | 4 | 4 | 1 | 32 |
+| Green | 19 (1×0, 2×1-9) | 2 | 2 | 4 | 4 | 1 | 32 |
+| Blue | 19 (1×0, 2×1-9) | 2 | 2 | 4 | 4 | 1 | 32 |
 
 ### Wild & Special Cards (24 cards)
 | Card Type | Quantity | Color Dependency |
 |---|---|---|
-| Wild +4 | 4 | Color-independent (player chooses) |
 | **Wild +6** ⚡ | **4** | Color-independent (player chooses) |
 | **Wild +10** ☠ | **4** | Color-independent (player chooses) |
 | **Wild +4 Reverse** ↪+4 | **8** | Color-independent (player chooses) |
-| Discard All | 2 | Color-independent (player chooses) |
 | **Smiley** 😊 | **8** | Color-independent (player chooses) |
 
-### Total: 120 cards
+### Total: 152 cards
 
 ## 2. Card Types & Hierarchy
 
 | Card Type | Color Dependency | Examples | Stacking Rule |
 |---|---|---|---|
 | Normal Cards | Color-specific (Red, Green, Blue, Yellow) | 0-9 | Base of the stack |
-| Action Cards | Color-specific | Reverse, +2 (Skip) | Stackable by same action type only |
-| Wild Cards | Color-independent | Wild +4 | Can be played on any card |
+| Action Cards | Color-specific | Reverse, +2, +4, Skip Everyone | Stackable by same action type only |
+| Wild Cards | Color-independent | — (none remain) | — |
 | Special Cards | Color-independent | Smiley 😊, +4 Reverse, +6, +10 | Stackable by identical special card only |
 
 ## 3. Game Play
@@ -55,12 +53,11 @@ The deck consists of **120 cards** total:
 ### Matching Rules
 - A card can be played if it matches the **color** OR **type** (number/action) of the top discard
 - **Number cards** match by value (e.g., a red 5 can be played on a blue 5, changing the active color to blue)
-- **Action cards** match by type (e.g., a red +2 can be played on a yellow +2)
-- **Wild cards** (+4, +6, etc.) can be played on any card
+- **Action cards** match by type (e.g., a red +2 can be played on a yellow +2, a green +4 on a blue +4)
 - **Special cards** (Smiley, +4 Reverse, +6, +10) are color-independent and respect only the current color flow
 
 ### Active Color
-- When any color-specific card is played (number, Reverse, +2, Skip), the active color updates to that card's color
+- When any color-specific card is played (number, Reverse, +2, +4, Skip Everyone), the active color updates to that card's color
 - When a Wild or Special card is played, the player **chooses** the new active color
 - Playing a number card of the same value but **different color** changes the active color to the card's color
 
@@ -85,10 +82,10 @@ The deck consists of **120 cards** total:
 - **Stackable**: Another +2 can be played on top (+2→+4→+6...)
 - Updates active color to the card's color
 
-### Wild +4
+### +4 (Color-Specific)
 - Next player draws 4 cards and misses their turn
-- Player chooses the next color
-- **Stackable**: Another Wild +4 can be played on top
+- **Stackable**: Another +4 can be played on top (color may differ)
+- Updates active color to the card's color
 
 ### Wild +4 Reverse
 - **Direction reverses first**
@@ -112,9 +109,10 @@ The deck consists of **120 cards** total:
 
 ### Discard All (Color-Specific)
 - The discard card is played onto the discard pile (stays on top)
-- Player chooses a color, then **selects which cards of that color** to discard (partial discard allowed)
-- Updates active color to the chosen color
-- Since the discard card is on top, the next player can play either the **chosen color** OR a **Discard All** card
+- The card's color becomes the active color
+- Player may **optionally select which cards of that color** to discard (partial discard allowed)
+- Player can also simply play the card alone with no discarding
+- Since the discard card is on top, the next player can play either the **active color** OR a **Discard All** card
 
 ### Smiley (😊)
 - Player chooses a color
@@ -132,14 +130,13 @@ The deck consists of **120 cards** total:
 - Skip can be stacked only on Skip
 
 ### Wild/Special Stacking
-- Wild +4 can be stacked only on Wild +4
+- +4 can be stacked only on +4 (color may differ)
 - Wild +6 can be stacked only on Wild +6
 - Wild +10 can be stacked only on Wild +10
 - +4 Reverse can be stacked only on +4 Reverse
 - Smiley cannot be stacked
 
 ### Illegal Stacking
-- A color-specific +2 cannot be stacked on a Wild +4 (or vice versa)
 - A Reverse cannot be stacked on a +4 Reverse (or vice versa)
 - Different special card types cannot be stacked on each other
 
@@ -182,27 +179,29 @@ The deck consists of **120 cards** total:
 | Reverse | Red/Yellow/Green/Blue | Loop arrows |
 | +2 | Red/Yellow/Green/Blue | "+2" with DRAW label |
 | Skip Everyone | Red/Yellow/Green/Blue | ⊘ symbol with SKIP ALL |
-| Wild +4 | Wild | "+4" with 4-point star burst |
+| +4 | Red/Yellow/Green/Blue | "+4" with DRAW 4 label |
 | Wild +4 Reverse | Wild (Special) | Double loop arrows + "+4" with explosion ring |
 | Wild +6 | Wild (Special) | "6" with "+6 ⚡" and double ring burst |
 | Wild +10 | Wild (Special) | "+10" with ☠ MAX and triple ominous rings |
-| Discard All | Wild | Trash icon |
+| Discard All | Red/Yellow/Green/Blue | Trash icon with colored background |
 | Smiley 😊 | Wild (Special) | 😊 emoji with rainbow gradient |
 
 ## 9. Card Types Overview
 
 | # | Card Type | Color | Effect | Stackable |
 |---|---|---|---|---|
+| # | Card Type | Color | Effect | Stackable |
+|---|---|---|---|---|
 | 1 | **Number (0-9)** | Red/Yellow/Green/Blue | Matches by value, updates active color | No |
 | 2 | **Reverse** | Red/Yellow/Green/Blue | Flips direction (2 players = Skip), updates color | Yes (Reverse) |
 | 3 | **+2** | Red/Yellow/Green/Blue | Next draws 2, misses turn, updates color | Yes (+2) |
-| 4 | **Skip Everyone** | Red/Yellow/Green/Blue | All others skipped, you go again | No |
-| 5 | **Wild +4** | Wild | Next draws 4, pick color | Yes (+4) |
+| 4 | **+4** | Red/Yellow/Green/Blue | Next draws 4, misses turn, updates color | Yes (+4) |
+| 5 | **Skip Everyone** | Red/Yellow/Green/Blue | All others skipped, you go again | No |
 | 6 | **Wild +4 Reverse** | Wild | Reverses first, then next draws 4 | Yes (+4 Reverse) |
 | 7 | **Wild +6** | Wild | Next draws 6, pick color | Yes (+6) |
 | 8 | **Wild +10 (MAX)** | Wild | Next draws 10, pick color | Yes (+10) |
-| 9 | **Discard All** | Wild | Pick color, discard all cards of that color | No |
-| 10 | **Smiley 😊** | Wild | Pick color, next draws until they hit it (animated reveal) | No |
+| 9 | **Discard All** | Red/Yellow/Green/Blue | Card's color is active, optionally discard cards of that color | No |
+| 10 | **Smiley 😊** | Wild | Pick color, next draws until they hit it | No |
 
 ---
 
