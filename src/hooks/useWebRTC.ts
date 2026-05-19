@@ -20,12 +20,14 @@ interface WebRTCReturn {
   playCard: (cardId: string, chosenColor?: Exclude<Card['color'], 'wild'>) => void;
   drawCard: () => void;
   skipTurn: () => void;
-  discardColor: (color: Exclude<Card['color'], 'wild'>) => void;
+  discardColor: (color: Exclude<Card['color'], 'wild'>, cardIds?: string[]) => void;
   sayUno: () => void;
   leaveRoom: () => void;
   revealedCards: { card: Card; playerId: string }[];
   smileyReveal: { cards: Card[]; playerId: string; matched: boolean; eliminated: boolean } | null;
   clearSmileyReveal: () => void;
+  unoCall: { playerId: string; playerName: string } | null;
+  clearUnoCall: () => void;
 }
 
 interface SmileyDrawEvent {
@@ -51,6 +53,7 @@ export function useWebRTC(): WebRTCReturn {
   } | null>(null);
   const [lobbyPlayers, setLobbyPlayers] = useState<LobbyPlayerInfo[]>([]);
   const [roomId, setRoomId] = useState<string | null>(null);
+  const [unoCall, setUnoCall] = useState<{ playerId: string; playerName: string } | null>(null);
   const pendingJoinRef = useRef<{ roomId: string; playerName: string } | null>(null);
 
   useEffect(() => {
@@ -158,6 +161,12 @@ export function useWebRTC(): WebRTCReturn {
       setSmileyReveal(data);
     });
 
+    socket.on('uno_called', (data: { playerId: string; playerName: string }) => {
+      setUnoCall(data);
+      // Auto-clear after 3 seconds
+      setTimeout(() => setUnoCall(null), 3000);
+    });
+
     return () => {
       socket.removeAllListeners();
       socket.disconnect();
@@ -194,12 +203,16 @@ export function useWebRTC(): WebRTCReturn {
     socketRef.current?.emit('skip_turn');
   }, []);
 
-  const discardColor = useCallback((color: Exclude<Card['color'], 'wild'>) => {
-    socketRef.current?.emit('discard_color', { color });
+  const discardColor = useCallback((color: Exclude<Card['color'], 'wild'>, cardIds?: string[]) => {
+    socketRef.current?.emit('discard_color', { color, cardIds });
   }, []);
 
   const sayUno = useCallback(() => {
     socketRef.current?.emit('say_uno');
+  }, []);
+
+  const clearUnoCall = useCallback(() => {
+    setUnoCall(null);
   }, []);
 
   const leaveRoom = useCallback(() => {
@@ -234,5 +247,7 @@ export function useWebRTC(): WebRTCReturn {
     revealedCards,
     smileyReveal,
     clearSmileyReveal,
+    unoCall,
+    clearUnoCall,
   };
 }

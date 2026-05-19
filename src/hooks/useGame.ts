@@ -22,6 +22,9 @@ interface UseGameReturn {
   cancelColor: () => void;
   isMyTurn: boolean;
   isLoading: boolean;
+  discardHandCards: CardType[];
+  selectedDiscardIds: string[];
+  setSelectedDiscardIds: (ids: string[]) => void;
 }
 
 export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
@@ -32,10 +35,13 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
   const [pendingCardId, setPendingCardId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
   const [emotes, setEmotes] = useState<{ playerId: string; emote: string }[]>([]);
+  const [selectedDiscardIds, setSelectedDiscardIds] = useState<string[]>([]);
 
   const gameState = rtc.gameState;
   const isMyTurn = gameState?.players[gameState.currentPlayerIndex]?.id === rtc.playerId;
   const isLoading = !gameState || gameState.status === 'lobby';
+  const localPlayer = gameState?.players.find((p) => p.id === rtc.playerId);
+  const discardHandCards = localPlayer?.hand ?? [];
 
   const handleCardClick = useCallback((cardId: string) => {
     if (!gameState) return;
@@ -54,6 +60,9 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
         return;
       }
       if (card.type === 'discardAll') {
+        // Play the discard card first (goes to discard pile), then show modal
+        rtc.playCard(cardId);
+        setPendingCardId(cardId);
         setShowDiscardAll(true);
         setSelectedCardId(null);
         return;
@@ -89,9 +98,10 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
     setPendingCardId(null);
   }, [pendingCardId, rtc]);
 
-  const handleDiscardSelect = useCallback((color: Exclude<CardColor, 'wild'>) => {
-    rtc.discardColor(color);
+  const handleDiscardSelect = useCallback((color: Exclude<CardColor, 'wild'>, cardIds?: string[]) => {
+    rtc.discardColor(color, cardIds);
     setShowDiscardAll(false);
+    setPendingCardId(null);
   }, [rtc]);
 
   const handleEmote = useCallback((emote: string) => {
@@ -130,5 +140,8 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
     cancelColor,
     isMyTurn,
     isLoading,
+    discardHandCards,
+    selectedDiscardIds,
+    setSelectedDiscardIds,
   };
 }

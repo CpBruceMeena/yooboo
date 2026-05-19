@@ -93,6 +93,20 @@ export function setupGameServer(httpServer: HTTPServer) {
         return;
       }
 
+      // Before adding, clean up any stale entries for this player name
+      // (handles page refresh/reconnect where the old socket is still in the room)
+      const existingForName = room.lobbyPlayers.filter((p) => p.name === playerName);
+      for (const dup of existingForName) {
+        for (const [existingSid, existingPid] of room.clients) {
+          if (existingPid === dup.id) {
+            room.clients.delete(existingSid);
+            clientMap.delete(existingSid);
+            break;
+          }
+        }
+        room.lobbyPlayers = room.lobbyPlayers.filter((p) => p.id !== dup.id);
+      }
+
       const playerId = `${socket.id}_${Date.now()}`;
       socket.join(roomId);
       room.clients.set(socket.id, playerId);
@@ -186,6 +200,15 @@ export function setupGameServer(httpServer: HTTPServer) {
       state.discardPile.push(card);
 
       const effects = applyCardEffect(state, card, payload.chosenColor);
+
+      // Broadcast UNO call when player goes from 2 cards to 1
+      if (player.hand.length === 1 && !player.saidUno) {
+        player.saidUno = true;
+        io.to(info.roomId).emit('uno_called', { 
+          playerId: player.id, 
+          playerName: player.name 
+        });
+      }
 
       if (effects.includes('smiley')) {
         const nextIdx = (state.currentPlayerIndex + state.direction + state.players.length) % state.players.length;
@@ -292,7 +315,7 @@ export function setupGameServer(httpServer: HTTPServer) {
       broadcastState(room, io);
     });
 
-    socket.on('discard_color', ({ color }: { color: Exclude<Card['color'], 'wild'> }) => {
+    socket.on('discard_color', ({ color, cardIds }: { color: Exclude<Card['color'], 'wild'>; cardIds?: string[] }) => {
       const info = clientMap.get(socket.id);
       if (!info) return;
       const room = rooms.get(info.roomId);
@@ -302,12 +325,20 @@ export function setupGameServer(httpServer: HTTPServer) {
       const player = state.players.find((p) => p.id === info.playerId);
       if (!player) return;
 
-      // Update active color to the chosen discard color
-      state.activeColor = color;
+      // Discard does NOT change activeColor — the discardAll card (wild) stays on top,
+      // so the next player must match by discardAll type OR the chosen color.
+      // If specific card IDs provided, only discard those; otherwise discard all of that color
+      if (cardIds && cardIds.length > 0) {
+        // Partial discard: only remove the selected cards
+        player.hand = player.hand.filter((c) => !cardIds.includes(c.id));
+      } else {
+        // Full discard: remove all cards of the chosen color
+        player.hand = player.hand.filter((c) => c.color !== color);
+      }
 
-      const toDiscard = player.hand.filter((c) => c.color === color);
-      player.hand = player.hand.filter((c) => c.color !== color);
-      state.discardPile.push(...toDiscard);
+      // Discarded cards are removed from the game (not added to discard pile)
+      // The discardAll card remains on top of the discard pile so the next player
+      // must match by discardAll type OR the chosen color
 
       const elimId = checkElimination(state);
       if (elimId) {
@@ -338,6 +369,23 @@ export function setupGameServer(httpServer: HTTPServer) {
       // Player chose to skip after drawing — advance turn
       nextTurn(state);
       broadcastState(room, io);
+    });
+
+    socket.on('leave_room', () => {
+      const info = clientMap.get(socket.id);
+      if (!info) return;
+      const room = rooms.get(info.roomId);
+      if (room) {
+        room.clients.delete(socket.id);
+        room.lobbyPlayers = room.lobbyPlayers.filter((p) => p.id !== info.playerId);
+        const player = room.state?.players.find((p) => p.id === info.playerId);
+        if (player) player.connected = false;
+        socket.to(info.roomId).emit('player_disconnected', { playerId: info.playerId });
+        if (room.clients.size === 0) {
+          rooms.delete(info.roomId);
+        }
+      }
+      clientMap.delete(socket.id);
     });
 
     socket.on('say_uno', () => {

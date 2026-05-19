@@ -5,16 +5,40 @@ Uno-No-Mercy is a high-stakes Uno variant with stacking penalties, special cards
 
 ---
 
-## 1. Card Types & Hierarchy
+## 1. Card Deck Composition
+
+The deck consists of **120 cards** total:
+
+### Color Cards (96 cards)
+| Color | Number (0-9) | Reverse | +2 | Skip Everyone | Total Per Color |
+|---|---|---|---|---|---|
+| Red | 19 (1×0, 2×1-9) | 2 | 2 | 1 | 24 |
+| Yellow | 19 (1×0, 2×1-9) | 2 | 2 | 1 | 24 |
+| Green | 19 (1×0, 2×1-9) | 2 | 2 | 1 | 24 |
+| Blue | 19 (1×0, 2×1-9) | 2 | 2 | 1 | 24 |
+
+### Wild & Special Cards (24 cards)
+| Card Type | Quantity | Color Dependency |
+|---|---|---|
+| Wild +4 | 4 | Color-independent (player chooses) |
+| **Wild +6** ⚡ | **4** | Color-independent (player chooses) |
+| **Wild +10** ☠ | **4** | Color-independent (player chooses) |
+| **Wild +4 Reverse** ↪+4 | **8** | Color-independent (player chooses) |
+| Discard All | 2 | Color-independent (player chooses) |
+| **Smiley** 😊 | **8** | Color-independent (player chooses) |
+
+### Total: 120 cards
+
+## 2. Card Types & Hierarchy
 
 | Card Type | Color Dependency | Examples | Stacking Rule |
 |---|---|---|---|
 | Normal Cards | Color-specific (Red, Green, Blue, Yellow) | 0-9 | Base of the stack |
-| Action Cards | Color-specific | Reverse, Skip, +2 | Stackable by same action type only |
-| Wild Cards | Color-independent | Wild, Wild +4 | Can be played on any card |
+| Action Cards | Color-specific | Reverse, +2 (Skip) | Stackable by same action type only |
+| Wild Cards | Color-independent | Wild +4 | Can be played on any card |
 | Special Cards | Color-independent | Smiley 😊, +4 Reverse, +6, +10 | Stackable by identical special card only |
 
-## 2. Game Play
+## 3. Game Play
 
 ### Starting the Game
 - Each player is dealt 7 cards
@@ -40,7 +64,12 @@ Uno-No-Mercy is a high-stakes Uno variant with stacking penalties, special cards
 - When a Wild or Special card is played, the player **chooses** the new active color
 - Playing a number card of the same value but **different color** changes the active color to the card's color
 
-## 3. Card Effects
+### Draw & Skip Rule
+- You may draw **only once** per turn
+- After drawing, if you have a matching card you can play it **OR** choose to skip your turn
+- If you skip, the next player takes their turn
+
+## 4. Card Effects
 
 ### Number Cards (0-9)
 - No special effect
@@ -51,7 +80,7 @@ Uno-No-Mercy is a high-stakes Uno variant with stacking penalties, special cards
 - With 2 players: acts as Skip (player who played goes again)
 - Updates active color to the card's color
 
-### Skip (+2)
+### +2 (Skip)
 - Next player draws 2 cards and misses their turn
 - **Stackable**: Another +2 can be played on top (+2→+4→+6...)
 - Updates active color to the card's color
@@ -81,23 +110,21 @@ Uno-No-Mercy is a high-stakes Uno variant with stacking penalties, special cards
 - Every other player is skipped — the player who played goes again
 - Cannot be played during a stack
 
-### Discard All
-- Player chooses a color and discards **all cards of that color** from their hand
+### Discard All (Color-Specific)
+- The discard card is played onto the discard pile (stays on top)
+- Player chooses a color, then **selects which cards of that color** to discard (partial discard allowed)
 - Updates active color to the chosen color
+- Since the discard card is on top, the next player can play either the **chosen color** OR a **Discard All** card
 
 ### Smiley (😊)
 - Player chooses a color
-- Next player draws cards from the draw pile **until they draw the chosen color**
-- Cards are drawn **one by one** and revealed to all players with animation
+- Next player draws cards from the draw pile **one-by-one** (animated reveal to all players)
+- Drawing continues **until they draw the chosen color card**
+- After each card drawn: if total hand is **≥25 cards**, that player is eliminated immediately
 - If the draw pile empties without matching, drawing stops
 - **Cannot be stacked**
 
-### Smiley Elimination
-- While drawing for Smiley, each drawn card is checked against the 25-card limit
-- If the total cards in hand (current + drawn so far) reaches **25 or more**, the drawing player is **immediately eliminated**
-- The player who played Smiley continues unaffected
-
-## 4. Stacking Rules
+## 5. Stacking Rules
 
 ### Color-Specific Stacking
 - +2 can be stacked only on +2 (color may differ)
@@ -121,7 +148,7 @@ Uno-No-Mercy is a high-stakes Uno variant with stacking penalties, special cards
 - The player who drew then misses their turn
 - Example: +4→+4→+6 = 14 cards drawn by the unlucky player
 
-## 5. Elimination & Winning
+## 6. Elimination & Winning
 
 ### Elimination
 - When a player reaches **25+ cards** in hand, they are eliminated
@@ -133,19 +160,21 @@ Uno-No-Mercy is a high-stakes Uno variant with stacking penalties, special cards
 - **First to empty their hand wins the game**
 - OR **last player standing** after all others are eliminated
 
-## 6. UNO Rule
+## 7. UNO Rule
 
-- When a player has **1 card** remaining, they must declare "UNO!"
+- When a player plays their **2nd-to-last card** (leaving 1 card in hand), **UNO is automatically called**
+- A notification is shown to **all players** when someone calls UNO
 - If another player catches them before the next player's turn, they draw **2 penalty cards**
 
-## 7. Color Flow Rules
+## 8. Color Flow Rules
 
 - **Action cards** (Reverse, Skip, +2) keep the current color flow (unless a different-color same-type match changes it)
 - **Wild cards** let the player choose the next color
 - **Special cards** (Smiley, +4 Reverse, +6, +10) let the player choose the next color
 - Playing a different-color number card of the same value changes the color flow
+- **Discard All**: the discard card stays on top, so the next player matches by **chosen color** or **Discard All type**
 
-## 8. Card Design Reference
+## 9. Card Design Reference
 
 | Card | Color | Design Element |
 |---|---|---|
