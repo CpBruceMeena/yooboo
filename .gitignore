@@ -51,7 +51,6 @@ crg-cache/
 # Agent files and logs
 .agent.md
 .logs/
-run.sh
 
 # Server dependencies
 server/node_modules/
