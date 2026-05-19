@@ -1,6 +1,6 @@
 'use client';
 
-import { GameState } from '@/lib/game';
+import { GameState, Player } from '@/lib/game';
 import PlayerSeat from './PlayerSeat';
 
 interface PlayerRingProps {
@@ -14,20 +14,43 @@ function getPositions(count: number) {
   return ['left', 'top-left', 'top', 'top-right', 'right', 'bottom-right', 'bottom', 'bottom-left'];
 }
 
+/**
+ * Reorder players so the local player is always at the "bottom" position.
+ * Other players are rotated around to maintain clockwise order.
+ */
+function reorderPlayersForDisplay(players: Player[], currentPlayerId: string | null | undefined, count: number): Player[] {
+  const positions = getPositions(count);
+  const bottomPosIndex = positions.indexOf('bottom');
+
+  const localPlayerIndex = players.findIndex(p => p.id === currentPlayerId);
+  if (localPlayerIndex === -1) return players;
+
+  // Rotate array so local player ends up at bottom position
+  const offset = (localPlayerIndex - bottomPosIndex + count) % count;
+  return [...players.slice(offset), ...players.slice(0, offset)];
+}
+
 export default function PlayerRing({ gameState, currentPlayerId }: PlayerRingProps) {
-  const activePlayers = gameState.players.filter((p) => !p.isEliminated);
   const positions = getPositions(gameState.players.length);
+  const currentPlayerIdForTurn = gameState.players[gameState.currentPlayerIndex]?.id;
+
+  // Reorder players so local player is at bottom of the screen
+  const displayPlayers = reorderPlayersForDisplay(
+    gameState.players,
+    currentPlayerId,
+    gameState.players.length,
+  );
 
   return (
     <div className="absolute inset-0 pointer-events-none">
-      {gameState.players.map((player, idx) => {
+      {displayPlayers.map((player, idx) => {
         const isCurrent = player.id === currentPlayerId;
         const pos = positions[idx] ?? 'top';
         const state = player.isEliminated
           ? 'eliminated'
           : player.hand.length === 1 && !player.isEliminated
             ? 'uno'
-            : gameState.currentPlayerIndex === idx
+            : player.id === currentPlayerIdForTurn
               ? 'active'
               : 'idle';
 
@@ -61,7 +84,7 @@ export default function PlayerRing({ gameState, currentPlayerId }: PlayerRingPro
           <div key={player.id} className={`absolute pointer-events-auto ${posClass}`}>
             <PlayerSeat
               player={player}
-              cardCount={player.hand.length}
+              cardCount={player.handSize ?? player.hand.length}
               state={state as any}
               isCurrentPlayer={isCurrent}
               position={seatPos}

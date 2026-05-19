@@ -79,46 +79,96 @@ function GameContent() {
     return (
       <div className="flex-1 flex items-center justify-center bg-bgPrimary">
         <div className="bg-bgSecondary rounded-2xl border border-textMuted/10 p-8 w-full max-w-sm text-center">
-          <h2 className="text-xl font-bold text-textPrimary mb-2">Room: {actualRoomId}</h2>
-          <p className="text-textMuted text-sm mb-4 flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${connected ? 'bg-success' : 'bg-warning'}`}></span>
-            {connected ? 'Players in lobby:' : 'Connecting to server...'}
-          </p>
+          {/* Room header with animated pulse */}
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className={`w-2.5 h-2.5 rounded-full ${connected ? 'bg-success animate-uno-pulse' : 'bg-yellow animate-uno-pulse'}`} />
+            <span className="text-xs font-medium text-textMuted tracking-wider uppercase">
+              {connected ? 'Connected' : 'Connecting'}
+            </span>
+          </div>
 
+          <h2 className="text-2xl font-bold text-textPrimary mb-1">Room Lobby</h2>
+          
+          {/* Room code with copy */}
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <span className="font-mono text-lg tracking-widest text-wild font-bold bg-bgTertiary/50 px-4 py-1.5 rounded-lg border border-wild/20">
+              {actualRoomId}
+            </span>
+            <button
+              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                navigator.clipboard.writeText(actualRoomId);
+                const btn = e.currentTarget;
+                btn.innerHTML = '<svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+                setTimeout(() => {
+                  btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>';
+                }, 1500);
+              }}
+              className="p-1.5 rounded-lg bg-bgTertiary hover:bg-bgTertiary/80 text-textMuted hover:text-textPrimary transition-colors cursor-pointer"
+              title="Copy room code"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="text-xs text-textMuted mb-5">
+            Share this code with friends to join
+          </div>
+
+          {/* Player list */}
           {lobbyPlayers.length > 0 && (
-            <div className="mb-4 space-y-1">
-              {lobbyPlayers.map((p, i) => (
-                <div
-                  key={p.id}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-bgTertiary/50 text-sm text-textPrimary"
-                >
-                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                    style={{ backgroundColor: ['#E44747','#F3C742','#33B56B','#3478F6','#7A4DFF','#FF6B6B','#4CD97B','#AAB2C0'][i % 8] }}
+            <div className="mb-5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-textMuted uppercase tracking-wider">
+                  Players ({lobbyPlayers.length})
+                </span>
+              </div>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto scrollbar-thin">
+                {lobbyPlayers.map((p, i) => (
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-bgTertiary/40 border border-textMuted/5 animate-fade-in"
+                    style={{ animationDelay: `${i * 50}ms` }}
                   >
-                    {p.name.charAt(0).toUpperCase()}
-                  </span>
-                  <span>{p.name}</span>
-                </div>
-              ))}
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                      style={{ backgroundColor: ['#E44747','#F3C742','#33B56B','#3478F6','#7A4DFF','#FF6B6B','#4CD97B','#AAB2C0'][i % 8] }}
+                    >
+                      {p.name.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="text-sm text-textPrimary flex-1 text-left truncate">{p.name}</span>
+                    {i === 0 && (
+                      <span className="text-[10px] text-success font-semibold px-1.5 py-0.5 rounded-full bg-success/10">Host</span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          <p className="text-textMuted text-xs mb-6">
-            Share this room code with friends
-          </p>
+          {lobbyPlayers.length === 0 && connected && (
+            <div className="mb-5 py-6 text-center">
+              <div className="text-3xl mb-2">👋</div>
+              <p className="text-textMuted text-sm">Waiting for players to join...</p>
+              <p className="text-textMuted/50 text-xs mt-1">Share the room code above</p>
+            </div>
+          )}
+
           {error && (
-            <div className="mb-4 px-4 py-2 rounded-lg bg-danger/20 border border-danger/30 text-danger text-sm">
+            <div className="mb-4 px-4 py-2.5 rounded-lg bg-danger/15 border border-danger/25 text-danger text-sm font-medium">
               {error}
             </div>
           )}
+          
           <div className="flex gap-3 justify-center">
             <Button
               variant="primary"
               onClick={() => startGame()}
               disabled={!connected || lobbyPlayers.length < 2}
-              title={!connected ? 'Waiting for server connection...' : lobbyPlayers.length < 2 ? 'Waiting for another player...' : 'Ready to start'}
+              title={!connected ? 'Waiting for server connection...' : lobbyPlayers.length < 2 ? 'Need at least 2 players to start' : 'Ready to start'}
             >
-              {lobbyPlayers.length < 2 ? `Waiting (${lobbyPlayers.length}/2)` : `Start Game (${lobbyPlayers.length})`}
+              {!connected ? 'Connecting...' : lobbyPlayers.length < 2 ? `Waiting (${lobbyPlayers.length}/2)` : `Start Game (${lobbyPlayers.length})`}
             </Button>
             <Button variant="secondary" onClick={() => router.push('/')}>
               Leave

@@ -38,12 +38,17 @@ export function useWebRTC(): UseWebRTCReturn {
   const pendingJoinRef = useRef<{ roomId: string; playerName: string } | null>(null);
 
   useEffect(() => {
-    const socketUrl =
-      process.env.NEXT_PUBLIC_SERVER_URL ||
-      `${window.location.protocol}//${window.location.hostname}:3001`;
+    // Smart connection: localhost → direct to server port (WebSocket works)
+    // External/ngrok → same-origin through Next.js proxy (polling only, WebSocket won't proxy)
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+
+    const explicitUrl = process.env.NEXT_PUBLIC_SERVER_URL;
+    const socketUrl = explicitUrl || (isLocal ? `http://${hostname}:3001` : undefined);
 
     const socket = io(socketUrl, {
       path: '/socket.io',
+      transports: isLocal ? ['websocket', 'polling'] : ['polling'],
       timeout: 10000,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,

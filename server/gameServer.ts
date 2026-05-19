@@ -148,6 +148,7 @@ export function setupGameServer(httpServer: HTTPServer) {
                 players: room.state.players.map((p) => ({
                   ...p,
                   hand: p.id === player.id ? p.hand : [],
+                  handSize: p.hand.length,
                 })),
               };
               console.log('start_game emitting state_update to', sid, 'for player', player.name);
@@ -239,7 +240,21 @@ export function setupGameServer(httpServer: HTTPServer) {
         for (const card of drawn) {
           io.to(info.roomId).emit('card_revealed', { card, playerId: player.id });
         }
+
+        const elimId = checkElimination(state);
+        if (elimId) {
+          io.to(info.roomId).emit('player_eliminated', { playerId: elimId });
+        }
+
+        const winner = checkWinner(state);
+        if (winner) {
+          io.to(info.roomId).emit('game_won', { winnerId: winner });
+        }
+
+        // Stack resolved — advance turn (player couldn't respond)
+        nextTurn(state);
       } else {
+        // Normal draw: player draws 1 card and keeps their turn to play any card
         if (state.drawPile.length === 0) {
           const recycled = recycleDiscardPile(state.discardPile);
           state.drawPile.push(...recycled);
@@ -249,20 +264,18 @@ export function setupGameServer(httpServer: HTTPServer) {
           player.hand.push(card);
           io.to(info.roomId).emit('card_revealed', { card, playerId: player.id });
         }
-      }
 
-      const elimId = checkElimination(state);
-      if (elimId) {
-        io.to(info.roomId).emit('player_eliminated', { playerId: elimId });
-      }
+        const elimId = checkElimination(state);
+        if (elimId) {
+          io.to(info.roomId).emit('player_eliminated', { playerId: elimId });
+        }
 
-      const winner = checkWinner(state);
-      if (winner) {
-        io.to(info.roomId).emit('game_won', { winnerId: winner });
-      }
+        const winner = checkWinner(state);
+        if (winner) {
+          io.to(info.roomId).emit('game_won', { winnerId: winner });
+        }
 
-      if (state.pendingDraw === 0) {
-        nextTurn(state);
+        // Turn stays — player can play any card after drawing
       }
 
       broadcastState(room, io);
@@ -340,6 +353,7 @@ function broadcastState(room: Room, io: SocketIOServer) {
         players: room.state.players.map((p) => ({
           ...p,
           hand: p.id === player.id ? p.hand : [],
+          handSize: p.hand.length,
         })),
       };
       console.log('Emitting state_update to', sid, 'for player', player.name);

@@ -27,6 +27,7 @@ export interface Player {
   id: string;
   name: string;
   hand: Card[];
+  handSize?: number;
   isEliminated: boolean;
   saidUno: boolean;
   connected: boolean;
@@ -49,7 +50,7 @@ export interface GameState {
 }
 
 export const STACKABLE: CardType[] = [
-  'plus2', 'plus4', 'plus6', 'plus10', 'reverse4', 'smiley',
+  'plus2', 'plus4', 'plus6', 'plus10', 'reverse4',
 ];
 
 export const COLORS: Exclude<CardColor, 'wild'>[] = ['red', 'yellow', 'green', 'blue'];

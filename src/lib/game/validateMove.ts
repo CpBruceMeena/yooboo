@@ -11,7 +11,17 @@ export function canPlayCard(
 
   const isWild = card.color === 'wild';
   const matchesColor = activeColor !== null && card.color === activeColor;
-  const matchesType = discardTop.type === card.type;
+
+  // Number cards match by value (not just type)
+  let matchesType: boolean;
+  if (card.type === 'number' && discardTop.type === 'number') {
+    matchesType =
+      card.value !== undefined &&
+      discardTop.value !== undefined &&
+      card.value === discardTop.value;
+  } else {
+    matchesType = discardTop.type === card.type;
+  }
 
   if (pendingDraw > 0 && pendingType) {
     if (!STACKABLE.includes(card.type)) return false;
