@@ -37,11 +37,11 @@ export function createDeck(): Card[] {
   }
 
   deck.push(...actionCards('wild' as any, 'plus4', 4));
-  deck.push(...actionCards('wild' as any, 'plus6', 2));
-  deck.push(...actionCards('wild' as any, 'plus10', 1));
-  deck.push(...actionCards('wild' as any, 'reverse4', 2));
-  deck.push(...actionCards('wild' as any, 'discardAll', 1));
-  deck.push(...actionCards('wild' as any, 'smiley', 2));
+  deck.push(...actionCards('wild' as any, 'plus6', 4));
+  deck.push(...actionCards('wild' as any, 'plus10', 4));
+  deck.push(...actionCards('wild' as any, 'reverse4', 8));
+  deck.push(...actionCards('wild' as any, 'discardAll', 2));
+  deck.push(...actionCards('wild' as any, 'smiley', 8));
 
   return shuffle(deck);
 }

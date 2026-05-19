@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { useGame } from '@/hooks/useGame';
+import { useSound } from '@/hooks/useSound';
 import TopBar from '@/components/TopBar';
 import GameTable from '@/components/GameTable';
 import RightPanel from '@/components/RightPanel';
@@ -216,7 +217,11 @@ function GameContent() {
     handleEmote, handleLeave, clearToast, cancelColor,
     isMyTurn, isLoading,
     smileyReveal, clearSmileyReveal,
+    discardHandCards,
+    unoCall, clearUnoCall,
   } = useGame();
+
+  const { play: playSound } = useSound();
 
   const [hasJoined, setHasJoined] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
@@ -265,6 +270,53 @@ function GameContent() {
   const handleSmileyComplete = useCallback(() => {
     clearSmileyReveal();
   }, [clearSmileyReveal]);
+
+  // Track direction change for reverse animation + sound
+  const prevDirectionRef = useRef(gameState?.direction);
+  useEffect(() => {
+    if (gameState && prevDirectionRef.current !== undefined && prevDirectionRef.current !== gameState.direction) {
+      playSound('reverse');
+    }
+    prevDirectionRef.current = gameState?.direction;
+  }, [gameState?.direction, playSound]);
+
+  // Sound on my turn
+  const prevTurnIdxRef = useRef(gameState?.currentPlayerIndex);
+  useEffect(() => {
+    if (gameState && prevTurnIdxRef.current !== undefined && prevTurnIdxRef.current !== gameState.currentPlayerIndex) {
+      const isNowMyTurn = gameState.players[gameState.currentPlayerIndex]?.id === playerId;
+      if (isNowMyTurn) playSound('turn');
+    }
+    prevTurnIdxRef.current = gameState?.currentPlayerIndex;
+  }, [gameState?.currentPlayerIndex, playerId, playSound]);
+
+  // Sound on discarding a card
+  const handLenRef = useRef(localPlayer?.hand.length);
+  useEffect(() => {
+    if (localPlayer && handLenRef.current !== undefined && handLenRef.current > localPlayer.hand.length) {
+      playSound('card_play');
+    }
+    handLenRef.current = localPlayer?.hand.length;
+  }, [localPlayer?.hand.length, playSound]);
+
+  // Special card animation trigger + sound
+  const [specialEffect, setSpecialEffect] = useState<{ type: string; cardType: string } | null>(null);
+  const prevTopCardRef = useRef(gameState?.discardPile[gameState?.discardPile.length - 1]?.id);
+  useEffect(() => {
+    if (!gameState) return;
+    const top = gameState.discardPile[gameState.discardPile.length - 1];
+    if (!top) return;
+    const topId = top.id;
+    if (prevTopCardRef.current !== topId) {
+      const specialTypes = ['reverse4', 'plus6', 'plus10', 'smiley', 'discardAll', 'plus4', 'skipEveryone'];
+      if (specialTypes.includes(top.type)) {
+        playSound('special');
+        setSpecialEffect({ type: 'flash', cardType: top.type });
+        setTimeout(() => setSpecialEffect(null), 800);
+      }
+    }
+    prevTopCardRef.current = topId;
+  }, [gameState?.discardPile, playSound]);
 
   if (!actualRoomId || !playerName) {
     return (
@@ -371,6 +423,7 @@ function GameContent() {
         onCancelColor={cancelColor}
         toast={toast}
         onToastDismiss={clearToast}
+        discardHandCards={discardHandCards}
       />
 
       {/* Smiley animated reveal overlay */}
@@ -383,6 +436,67 @@ function GameContent() {
             eliminated={smileyReveal.eliminated}
             onComplete={handleSmileyComplete}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Special card flash effect */}
+      <AnimatePresence>
+        {specialEffect && (
+          <motion.div
+            key="special-flash"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 0.3, 0] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="fixed inset-0 z-40 pointer-events-none bg-gradient-to-br from-wild/20 via-purple-500/10 to-red-500/20"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* UNO call notification */}
+      <AnimatePresence>
+        {unoCall && (
+          <motion.div
+            key="uno-call"
+            initial={{ opacity: 0, y: -60, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -40, scale: 0.8 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-50"
+          >
+            <motion.div
+              className="bg-gradient-to-r from-wild via-purple-600 to-red-500 py-3 px-8 rounded-2xl border-2 border-white/30 shadow-2xl flex items-center gap-4"
+              animate={{ boxShadow: ['0 0 20px rgba(255,0,100,0.3)', '0 0 40px rgba(255,0,100,0.6)', '0 0 20px rgba(255,0,100,0.3)'] }}
+              transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <motion.span
+                className="text-3xl"
+                animate={{ rotate: [0, -10, 10, 0] }}
+                transition={{ duration: 0.4, repeat: Infinity }}
+              >
+                🗣️
+              </motion.span>
+              <div className="text-center">
+                <motion.span
+                  className="text-white font-black text-xl tracking-widest block drop-shadow-lg"
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 0.6, repeat: Infinity }}
+                >
+                  UNO! 🃏
+                </motion.span>
+                <span className="text-white/80 text-sm font-semibold">
+                  {unoCall.playerName}
+                </span>
+              </div>
+              <motion.span
+                className="text-3xl"
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 0.4, repeat: Infinity }}
+              >
+                🗣️
+              </motion.span>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </motion.div>

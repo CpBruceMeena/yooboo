@@ -79,18 +79,21 @@ export default function PlayerHandTray({
                           ? 'playable'
                           : 'disabled';
 
+                    const isNew = card.id.startsWith('card_') && cards.length > 0;
                     return (
                       <motion.div
                         key={card.id}
                         layout
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
+                        initial={{ opacity: 0, y: -30, scale: 0.6 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.6, y: 20 }}
                         transition={{
                           type: 'spring',
-                          stiffness: 300,
-                          damping: 25,
+                          stiffness: isPlayable ? 350 : 250,
+                          damping: isPlayable ? 20 : 28,
+                          mass: 0.7,
                         }}
+                        whileHover={isPlayable ? { y: -6, scale: 1.08 } : undefined}
                       >
                         <Card
                           type={card.type}

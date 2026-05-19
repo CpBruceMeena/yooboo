@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Card as CardType } from '@/lib/game';
 import ChangeColorModal from './ChangeColorModal';
 import DiscardAllModal from './DiscardAllModal';
 import GameResultModal from './GameResultModal';
@@ -12,12 +13,13 @@ interface OverlayLayerProps {
   showGameResult: boolean;
   gameResult?: { winnerName?: string; isWinner?: boolean };
   onColorSelect: (color: any) => void;
-  onDiscardSelect: (color: any) => void;
+  onDiscardSelect: (color: any, cardIds?: string[]) => void;
   onPlayAgain?: () => void;
   onLeave?: () => void;
   onCancelColor?: () => void;
   toast?: { message: string; type?: 'info' | 'success' | 'error' } | null;
   onToastDismiss?: () => void;
+  discardHandCards?: CardType[];
 }
 
 export default function OverlayLayer({
@@ -32,6 +34,7 @@ export default function OverlayLayer({
   onCancelColor,
   toast,
   onToastDismiss,
+  discardHandCards = [],
 }: OverlayLayerProps) {
   return (
     <>
@@ -42,6 +45,7 @@ export default function OverlayLayer({
       />
       <DiscardAllModal
         open={showDiscardAll}
+        hand={discardHandCards}
         onSelect={onDiscardSelect}
       />
       <GameResultModal
