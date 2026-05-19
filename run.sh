@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SERVER_DIR="$ROOT_DIR/server"
@@ -11,7 +11,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 # ─── Help ─────────────────────────────────────────────────────────
 usage() {
@@ -27,11 +27,24 @@ usage() {
   exit 0
 }
 
+# ─── Kill port helper ─────────────────────────────────────────────
+kill_port() {
+  local port=$1
+  if command -v lsof >/dev/null 2>&1; then
+    local pids
+    pids=$(lsof -ti ":$port" 2>/dev/null || true)
+    if [ -n "$pids" ]; then
+      echo -e "  ${RED}✕${NC} Killing process(es) $pids using port $port"
+      echo "$pids" | xargs kill -9 2>/dev/null || true
+    fi
+  fi
+}
+
 # ─── Stop ─────────────────────────────────────────────────────────
 stop_servers() {
   echo -e "${YELLOW}Stopping servers...${NC}"
 
-  # Kill from PID file first (background mode)
+  # Kill from PID file (background mode)
   if [ -f "$PID_FILE" ]; then
     while IFS= read -r pid; do
       if kill -0 "$pid" 2>/dev/null; then
@@ -41,23 +54,17 @@ stop_servers() {
     rm -f "$PID_FILE"
   fi
 
-  # Also kill any lingering processes (catches orphaned ones)
-  local killed=0
-  if pkill -f "tsx index.ts" 2>/dev/null; then killed=1; fi
-  if pkill -f "next dev" 2>/dev/null; then killed=1; fi
+  # Kill by process name (catches any orphans)
+  pkill -f "tsx index.ts" 2>/dev/null || true
+  pkill -f "next dev" 2>/dev/null || true
 
-  # Kill tmux session if it exists
+  # Kill tmux session
   if tmux has-session -t uno-nomercy 2>/dev/null; then
     tmux kill-session -t uno-nomercy
     echo -e "  ${RED}✕${NC} killed tmux session 'uno-nomercy'"
-    killed=1
   fi
 
-  if [ "$killed" -eq 0 ]; then
-    echo -e "  ${YELLOW}No running servers found.${NC}"
-  else
-    echo -e "${GREEN}✓ Servers stopped.${NC}"
-  fi
+  echo -e "${GREEN}✓ Servers stopped.${NC}"
 }
 
 # ─── Status ───────────────────────────────────────────────────────
@@ -107,12 +114,27 @@ tail_logs() {
     echo -e "${YELLOW}No log files found.${NC}"
 }
 
+# ─── Install dependencies ─────────────────────────────────────────
+install_deps() {
+  if [ ! -d "$ROOT_DIR/node_modules" ]; then
+    echo "Installing root dependencies..."
+    npm install
+  fi
+  if [ ! -d "$SERVER_DIR/node_modules" ]; then
+    echo "Installing server dependencies..."
+    (cd "$SERVER_DIR" && npm install)
+  fi
+}
+
 # ─── Start (tmux) ────────────────────────────────────────────────
 start_tmux() {
   echo -e "${CYAN}Starting in tmux...${NC}"
 
-  # Kill any existing session first
+  # Kill any previous session
   tmux kill-session -t uno-nomercy 2>/dev/null || true
+
+  # Give ports a moment to free
+  sleep 1
 
   tmux new-session -d -s uno-nomercy -n "uno-nomercy"
   tmux send-keys -t uno-nomercy "cd $SERVER_DIR && npx tsx index.ts" Enter
@@ -122,18 +144,16 @@ start_tmux() {
 
   tmux select-pane -t uno-nomercy:0.0
 
-  echo -e "${GREEN}✓${NC} Servers started in tmux session '${CYAN}uno-nomercy${NC}'"
   echo ""
   echo -e "  ${GREEN}●${NC} Game Server → port ${CYAN}3001${NC}"
   echo -e "  ${GREEN}●${NC} Next.js App → port ${CYAN}3000${NC}"
   echo ""
-  echo -e "  ${YELLOW}Commands:${NC}"
-  echo -e "    ./run.sh stop    — Stop servers"
-  echo -e "    tmux attach -t uno-nomercy  — See live output"
-  echo -e "    Ctrl+B then D    — Detach from tmux (keeps servers running)"
+  echo -e "  ${YELLOW}Attaching to session...${NC}"
+  echo -e "  ${YELLOW}Press Ctrl+C to stop servers${NC}"
+  echo -e "  Or detach with Ctrl+B then D (servers keep running)"
   echo ""
 
-  # Attach so user sees output; on exit/Ctrl+C, kill the session
+  # ATTACH — this is the key fix. User sees live output and Ctrl+C kills it.
   tmux attach-session -t uno-nomercy
 }
 
@@ -172,7 +192,6 @@ start_background() {
   echo -e "  ${YELLOW}Press Ctrl+C to stop both servers${NC}"
   echo ""
 
-  # Wait for either process to exit, or Ctrl+C
   wait $server_pid $client_pid 2>/dev/null
   echo -e "${YELLOW}A server process exited. Stopping...${NC}"
   stop_servers
@@ -188,9 +207,21 @@ main() {
         exit 1
       fi
 
+      echo "Uno-No-Mercy startup script"
+      echo ""
+
+      # Free ports
+      echo "Checking and freeing ports 3000 and 3001..."
+      kill_port 3001
+      kill_port 3000
+
+      echo ""
+      install_deps
+
       if command -v tmux &>/dev/null; then
         start_tmux
       else
+        echo "tmux unavailable: starting processes in background and writing logs."
         start_background
       fi
       ;;
