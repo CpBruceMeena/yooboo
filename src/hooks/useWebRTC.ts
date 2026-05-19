@@ -7,7 +7,7 @@ interface LobbyPlayerInfo {
   name: string;
 }
 
-interface UseWebRTCReturn {
+interface WebRTCReturn {
   connected: boolean;
   gameState: GameState | null;
   playerId: string | null;
@@ -24,9 +24,18 @@ interface UseWebRTCReturn {
   sayUno: () => void;
   leaveRoom: () => void;
   revealedCards: { card: Card; playerId: string }[];
+  smileyReveal: { cards: Card[]; playerId: string; matched: boolean; eliminated: boolean } | null;
+  clearSmileyReveal: () => void;
 }
 
-export function useWebRTC(): UseWebRTCReturn {
+interface SmileyDrawEvent {
+  cards: Card[];
+  playerId: string;
+  matched: boolean;
+  eliminated: boolean;
+}
+
+export function useWebRTC(): WebRTCReturn {
   const socketRef = useRef<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -34,6 +43,12 @@ export function useWebRTC(): UseWebRTCReturn {
   const [playerName, setPlayerName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [revealedCards, setRevealedCards] = useState<{ card: Card; playerId: string }[]>([]);
+  const [smileyReveal, setSmileyReveal] = useState<{
+    cards: Card[];
+    playerId: string;
+    matched: boolean;
+    eliminated: boolean;
+  } | null>(null);
   const [lobbyPlayers, setLobbyPlayers] = useState<LobbyPlayerInfo[]>([]);
   const [roomId, setRoomId] = useState<string | null>(null);
   const pendingJoinRef = useRef<{ roomId: string; playerName: string } | null>(null);
@@ -139,6 +154,10 @@ export function useWebRTC(): UseWebRTCReturn {
       setRevealedCards((prev) => [...prev, data]);
     });
 
+    socket.on('smiley_draw', (data: SmileyDrawEvent) => {
+      setSmileyReveal(data);
+    });
+
     return () => {
       socket.removeAllListeners();
       socket.disconnect();
@@ -189,6 +208,11 @@ export function useWebRTC(): UseWebRTCReturn {
     setGameState(null);
     setLobbyPlayers([]);
     setRoomId(null);
+    setSmileyReveal(null);
+  }, []);
+
+  const clearSmileyReveal = useCallback(() => {
+    setSmileyReveal(null);
   }, []);
 
   return {
@@ -208,5 +232,7 @@ export function useWebRTC(): UseWebRTCReturn {
     sayUno,
     leaveRoom,
     revealedCards,
+    smileyReveal,
+    clearSmileyReveal,
   };
 }

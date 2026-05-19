@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { useGame } from '@/hooks/useGame';
@@ -8,6 +8,7 @@ import TopBar from '@/components/TopBar';
 import GameTable from '@/components/GameTable';
 import RightPanel from '@/components/RightPanel';
 import OverlayLayer from '@/components/OverlayLayer';
+import SmileyReveal from '@/components/SmileyReveal';
 
 const playerColors = ['#E44747','#F3C742','#33B56B','#3478F6','#7A4DFF','#FF6B6B','#4CD97B','#AAB2C0'];
 
@@ -214,6 +215,7 @@ function GameContent() {
     handleColorSelect, handleDiscardSelect,
     handleEmote, handleLeave, clearToast, cancelColor,
     isMyTurn, isLoading,
+    smileyReveal, clearSmileyReveal,
   } = useGame();
 
   const [hasJoined, setHasJoined] = useState(false);
@@ -254,6 +256,15 @@ function GameContent() {
 
   const localPlayer = gameState?.players.find((p) => p.id === playerId);
   const unoEligible = localPlayer?.hand.length === 1 && !localPlayer.saidUno;
+
+  const isSmileyAnimating = smileyReveal !== null;
+  const smileyDrawPlayerName = smileyReveal
+    ? gameState?.players.find((p) => p.id === smileyReveal.playerId)?.name ?? 'Unknown'
+    : '';
+
+  const handleSmileyComplete = useCallback(() => {
+    clearSmileyReveal();
+  }, [clearSmileyReveal]);
 
   if (!actualRoomId || !playerName) {
     return (
@@ -331,8 +342,8 @@ function GameContent() {
           selectedCardId={selectedCardId}
           onCardClick={handleCardPlay}
           onDraw={handleDrawClick}
-          drawDisabled={hasDrawn || gameState.pendingDraw <= 0 || !isMyTurn}
-          handDisabled={isGameFinished}
+          drawDisabled={hasDrawn || gameState.pendingDraw <= 0 || !isMyTurn || isSmileyAnimating}
+          handDisabled={isGameFinished || isSmileyAnimating}
         />
         <RightPanel
           onDraw={handleDrawClick}
@@ -340,7 +351,7 @@ function GameContent() {
           onSayUno={handleSayUno}
           onLeave={handleLeave}
           onEmote={handleEmote}
-          disabled={!isMyTurn || isGameFinished}
+          disabled={!isMyTurn || isGameFinished || isSmileyAnimating}
           hasDrawn={hasDrawn}
           unoEligible={!!unoEligible}
         />
@@ -361,6 +372,19 @@ function GameContent() {
         toast={toast}
         onToastDismiss={clearToast}
       />
+
+      {/* Smiley animated reveal overlay */}
+      <AnimatePresence>
+        {smileyReveal && (
+          <SmileyReveal
+            cards={smileyReveal.cards}
+            playerName={smileyDrawPlayerName}
+            matched={smileyReveal.matched}
+            eliminated={smileyReveal.eliminated}
+            onComplete={handleSmileyComplete}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

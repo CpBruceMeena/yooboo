@@ -88,8 +88,14 @@ Uno-No-Mercy is a high-stakes Uno variant with stacking penalties, special cards
 ### Smiley (😊)
 - Player chooses a color
 - Next player draws cards from the draw pile **until they draw the chosen color**
+- Cards are drawn **one by one** and revealed to all players with animation
 - If the draw pile empties without matching, drawing stops
 - **Cannot be stacked**
+
+### Smiley Elimination
+- While drawing for Smiley, each drawn card is checked against the 25-card limit
+- If the total cards in hand (current + drawn so far) reaches **25 or more**, the drawing player is **immediately eliminated**
+- The player who played Smiley continues unaffected
 
 ## 4. Stacking Rules
 
@@ -119,6 +125,7 @@ Uno-No-Mercy is a high-stakes Uno variant with stacking penalties, special cards
 
 ### Elimination
 - When a player reaches **25+ cards** in hand, they are eliminated
+- **Smiley draw:** Elimination is checked after **each drawn card** — if the limit is reached mid-draw, elimination happens immediately and drawing stops
 - Eliminated players are removed from the game
 - Game continues with remaining players
 
@@ -152,6 +159,21 @@ Uno-No-Mercy is a high-stakes Uno variant with stacking penalties, special cards
 | Wild +10 | Wild (Special) | "+10" with ☠ MAX and triple ominous rings |
 | Discard All | Wild | Trash icon |
 | Smiley 😊 | Wild (Special) | 😊 emoji with rainbow gradient |
+
+## 9. Card Types Overview
+
+| # | Card Type | Color | Effect | Stackable |
+|---|---|---|---|---|
+| 1 | **Number (0-9)** | Red/Yellow/Green/Blue | Matches by value, updates active color | No |
+| 2 | **Reverse** | Red/Yellow/Green/Blue | Flips direction (2 players = Skip), updates color | Yes (Reverse) |
+| 3 | **+2** | Red/Yellow/Green/Blue | Next draws 2, misses turn, updates color | Yes (+2) |
+| 4 | **Skip Everyone** | Red/Yellow/Green/Blue | All others skipped, you go again | No |
+| 5 | **Wild +4** | Wild | Next draws 4, pick color | Yes (+4) |
+| 6 | **Wild +4 Reverse** | Wild | Reverses first, then next draws 4 | Yes (+4 Reverse) |
+| 7 | **Wild +6** | Wild | Next draws 6, pick color | Yes (+6) |
+| 8 | **Wild +10 (MAX)** | Wild | Next draws 10, pick color | Yes (+10) |
+| 9 | **Discard All** | Wild | Pick color, discard all cards of that color | No |
+| 10 | **Smiley 😊** | Wild | Pick color, next draws until they hit it (animated reveal) | No |
 
 ---
 

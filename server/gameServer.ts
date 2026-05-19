@@ -191,9 +191,20 @@ export function setupGameServer(httpServer: HTTPServer) {
         const nextIdx = (state.currentPlayerIndex + state.direction + state.players.length) % state.players.length;
         const nextPlayer = state.players[nextIdx];
         const result = resolveSmileyDraw(state, nextIdx, payload.chosenColor ?? 'red');
-        for (const drawn of result.drawn) {
-          io.to(info.roomId).emit('card_revealed', { card: drawn, playerId: nextPlayer.id });
+
+        // Emit all drawn cards at once for the client to animate one-by-one
+        io.to(info.roomId).emit('smiley_draw', {
+          cards: result.drawn,
+          playerId: nextPlayer.id,
+          matched: result.matched,
+          eliminated: result.eliminated,
+        });
+
+        // Broadcast elimination before state update if player was eliminated
+        if (result.eliminated) {
+          io.to(info.roomId).emit('player_eliminated', { playerId: nextPlayer.id });
         }
+
         nextTurn(state);
       } else if (effects.includes('stack')) {
         nextTurn(state);
