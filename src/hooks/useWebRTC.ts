@@ -35,6 +35,7 @@ export function useWebRTC(): UseWebRTCReturn {
   const [revealedCards, setRevealedCards] = useState<{ card: Card; playerId: string }[]>([]);
   const [lobbyPlayers, setLobbyPlayers] = useState<LobbyPlayerInfo[]>([]);
   const [roomId, setRoomId] = useState<string | null>(null);
+  const pendingJoinRef = useRef<{ roomId: string; playerName: string } | null>(null);
 
   useEffect(() => {
     const socketUrl =
@@ -53,6 +54,11 @@ export function useWebRTC(): UseWebRTCReturn {
     socket.on('connect', () => {
       setConnected(true);
       setError(null);
+      // If we have a pending join, re-emit it (handles initial connect and reconnect)
+      const pending = pendingJoinRef.current;
+      if (pending) {
+        socket.emit('join_room', pending);
+      }
     });
     socket.on('disconnect', () => setConnected(false));
     socket.on('connect_error', (err: Error & { message?: string }) => {
@@ -73,6 +79,8 @@ export function useWebRTC(): UseWebRTCReturn {
     socket.on('room_joined', (data: { roomId: string; players: LobbyPlayerInfo[] }) => {
       setRoomId(data.roomId);
       setLobbyPlayers(data.players);
+      // Clear pending join since we successfully joined
+      pendingJoinRef.current = null;
     });
 
     socket.on('player_joined', (data: { playerId: string; playerName: string }) => {
@@ -125,7 +133,14 @@ export function useWebRTC(): UseWebRTCReturn {
   }, []);
 
   const joinRoom = useCallback((roomId: string, name: string) => {
-    socketRef.current?.emit('join_room', { roomId, playerName: name });
+    const socket = socketRef.current;
+    if (!socket) return;
+    const payload = { roomId, playerName: name };
+    pendingJoinRef.current = payload;
+    if (socket.connected) {
+      socket.emit('join_room', payload);
+    }
+    // If not connected, the 'connect' handler will emit it
   }, []);
 
   const startGame = useCallback(() => {
@@ -153,6 +168,7 @@ export function useWebRTC(): UseWebRTCReturn {
 
   const leaveRoom = useCallback(() => {
     socketRef.current?.emit('leave_room');
+    pendingJoinRef.current = null;
     setGameState(null);
     setLobbyPlayers([]);
     setRoomId(null);
