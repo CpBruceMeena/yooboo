@@ -12,6 +12,7 @@ interface UseGameReturn {
   toast: { message: string; type: 'info' | 'success' | 'error' } | null;
   handleCardClick: (cardId: string) => void;
   handleDraw: () => void;
+  handleSkipTurn: () => void;
   handleSayUno: () => void;
   handleColorSelect: (color: Exclude<CardColor, 'wild'>) => void;
   handleDiscardSelect: (color: Exclude<CardColor, 'wild'>) => void;
@@ -70,6 +71,12 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
     setSelectedCardId(null);
   }, [isMyTurn, rtc]);
 
+  const handleSkipTurn = useCallback(() => {
+    if (!isMyTurn) return;
+    rtc.skipTurn();
+    setSelectedCardId(null);
+  }, [isMyTurn, rtc]);
+
   const handleSayUno = useCallback(() => {
     rtc.sayUno();
   }, [rtc]);
@@ -113,6 +120,7 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
     toast,
     handleCardClick,
     handleDraw,
+    handleSkipTurn,
     handleSayUno,
     handleColorSelect,
     handleDiscardSelect,

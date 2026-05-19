@@ -1,0 +1,111 @@
+Uno-No-Mercy: Game Rules & Frontend Design Specification
+This document defines the unique rules for the Uno-No-Mercy card game and provides a comprehensive guide for building its distinctive, production-grade frontend interface.
+
+🎮 Part 1: Game Rules & Core Logic
+The following rules govern gameplay and must be implemented server-side.
+
+1.1 Card Types & Hierarchy
+Card Type	Color Dependency	Examples	Stacking Rule
+Normal Cards	Color-specific (Red, Green, Blue, Yellow)	0-9	Base of the stack.
+Action Cards	Color-specific	Reverse, Skip, +2	Can be overridden only by the same action type (e.g., +2 on +2). Color can be different.
+Wild Cards	Color-independent	Wild, Wild +4	Can be played on any card. Wild +4 can only be stacked by another Wild +4.
+Special Cards	Color-independent	Smiley 😊, +4 Reverse, +6, +10	(Rule 1) Can be played on any normal card or after a stack has resolved. (Rule 4) They are color-independent and respect the current color flow. (Rule 4) They can only be stacked by the identical special card (e.g., Smiley on Smiley, +6 on +6). No other card type can stack on them.
+1.2 Core Rule Clarifications
+Play Order & Matching:
+
+A card can be played if it matches the color OR the type (number/action) of the card on top of the discard pile.
+
+Wild Cards (+4) and Special Cards are color-independent.
+
+Stacking Resolution (Rule 1 & 4): Special cards are played and resolved individually, not in a stack. A player plays a +6, the next must draw 6 cards. The card is then resolved.
+
+Color Flow (Rules 5 & 6):
+
+When a color-specific Action Card (Reverse, Skip, +2) is played, the color flow remains that specific color.
+
+When a Special Card (Smiley, +4 Reverse, +6, +10) is played, the player gets to choose the next color to be followed.
+
+Wild +4 follows the same rule as Special Cards: the player chooses the next color.
+
+Illegal Stacking (Rule 5): A normal +2 (color-specific) cannot be stacked on a Wild +4 (color-independent), and vice versa.
+
+1.3 Action & Special Card Effects
+Card	Effect	Stackable With
+Skip	Next player misses turn.	Another Skip.
+Reverse	Reverses the direction of play.	Another Reverse.
++2	Next player draws 2 cards and misses turn.	Another +2.
+Wild	Player chooses the next color.	Another Wild.
+Wild +4	Next player draws 4 cards and misses turn. Player chooses next color.	Another Wild +4.
+Smiley (😊)	(Rule 4) Play as a special card; player chooses next color.	Another Smiley.
++4 Reverse	(Rule 4) Direction reverses, next player draws 4 cards, player chooses next color.	Another +4 Reverse.
++6	(Rule 4) Next player draws 6 cards and misses turn. Player chooses next color.	Another +6.
++10	(Rule 4) Next player draws 10 cards and misses turn. Player chooses next color.	Another +10.
+🎨 Part 2: Frontend Design Direction (Using frontend-design Skill)
+This section provides the creative and technical direction for the frontend. Your developer must use the frontend-design skill to avoid generic "AI slop" and create a genuinely memorable interface.
+
+2.1 Aesthetic Direction: "Arcade Glitch"
+Tone: Playful/Toy-like + Brutalist/Industrial.
+
+Concept: Imagine an Uno game designed inside a 90s arcade machine by a cyberpunk punk. It's loud, confident, and slightly broken in a beautiful way.
+
+Visual Cues:
+
+Colors: Dominant, deep colors (rich violet, electric blue, neon orange) with a single, sharp, almost-too-bright accent (like a toxic yellow-green). Use CSS variables.
+
+Typography: Avoid Arial/Inter. Use a heavy, geometric display font (e.g., "Bebas Neue" or "Anton") for titles and scores. Use a monospace or highly distinctive sans-serif for body text (e.g., "Courier Prime" or "Space Mono").
+
+Backgrounds: Dark, gritty texture with a subtle grid. Include a glitch effect that occurs randomly on hover or card play. Use a grain overlay.
+
+Shapes & Layout: Unexpected, asymmetrical. The card pile should be dynamically angled. Scoreboards can be broken into floating, overlapping panels.
+
+Motion: Use staggered reveals (animation-delay). Card plays should have a "pop" or a magnetic "snap" animation. Hover states should surprise—maybe a card glitches or emits a scanline.
+
+2.2 Specific Feature Implementation
+The Home Page & 3D Setup (Rule 3)
+Requirement: Create a homepage with a "brilliant" 3D setup, referencing letsplayuno.com.
+
+Implementation: Use Three.js to create a dynamic 3D scene. The scene must feature:
+
+A table surface with realistic or stylized reflections.
+
+A deck of cards floating or stacked with slow, ambient rotation.
+
+A few key cards (e.g., the Smiley, +6, and Reverse) orbiting the main deck.
+
+Camera movement: a subtle, slow orbit or drift to add life.
+
+The Rules Display (Rule 7)
+Requirement: The rules should not be in a boring vertical strip at the bottom.
+
+Implementation: Create a "Rule Vault" – a distinctive, separate widget.
+
+A small, prominent button (e.g., "THE VAULT") opens a modal or a sidebar.
+
+Inside, rules are not listed as plain text. They are short, punchy, and presented on virtual "cards" or as a scrolling command-line interface (CLI) for a "brutalist" feel.
+
+Use icons and glitchy hover effects for each rule.
+
+2.3 Technical Stack & Guidelines
+Code: Production-grade HTML/CSS/JS (or React, if preferred). All code must be fully functional.
+
+Responsiveness: Must work on desktop. Provide graceful degradation for mobile.
+
+Animation: Prioritize CSS for micro-interactions. Use the Motion library (framer-motion) for complex React animations.
+
+Differentiation: The final interface should be UNFORGETTABLE. It should not look like any other Uno clone. It must feel like its own, unique entity.
+
+📝 Part 3: Deliverables
+Your developer must deliver a complete, ready-to-deploy index.html (or equivalent single file) that includes:
+
+HTML/CSS/JS: All rules and the homepage design implemented in a single, valid HTML file.
+
+Three.js Scene: The fully functional 3D scene on the homepage.
+
+Rule Vault Widget: The interactive rules display widget.
+
+Core Game Logic: (Implementation of rules from Part 1) The actual game logic for playing cards, tracking turns, and handling stacking/special cards.
+
+Game Interface: The main game interface (table, player's hand, AI/opponents, discard pile) fully styled and interactive.
+
+The developer must reference this document and the frontend-design skill's guidelines to produce an outstanding, unconventional, and highly polished product. No generic solutions or placeholder aesthetics are acceptable.
+

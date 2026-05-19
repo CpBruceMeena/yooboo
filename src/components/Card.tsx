@@ -13,9 +13,9 @@ interface CardProps {
 }
 
 const sizeMap: Record<string, string> = {
-  sm: 'w-14 h-20 text-xs',
-  md: 'w-20 h-28',
-  lg: 'w-24 h-32 text-lg',
+  sm: 'w-11 h-16 text-[10px]',
+  md: 'w-16 h-22 text-xs',
+  lg: 'w-20 h-26 text-base',
 };
 
 const colorGradients: Record<string, string> = {
@@ -65,11 +65,11 @@ export default function Card({ type, color, value, state = 'default', onClick, s
     <motion.div
       onClick={canInteract ? onClick : undefined}
       layout
-      whileHover={canInteract ? { y: -16, scale: 1.06 } : undefined}
+      whileHover={canInteract ? { y: -10, scale: 1.05 } : undefined}
       whileTap={canInteract ? { scale: 0.95 } : undefined}
       animate={{
-        y: isSelected ? -24 : 0,
-        scale: isSelected ? 1.06 : 1,
+        y: isSelected ? -14 : 0,
+        scale: isSelected ? 1.05 : 1,
       }}
       transition={{
         type: 'spring',
@@ -99,13 +99,13 @@ export default function Card({ type, color, value, state = 'default', onClick, s
       />
 
       {/* Corner badge top-left */}
-      <span className={`absolute top-1 left-1.5 text-[10px] ${size === 'sm' ? 'hidden' : ''} leading-none opacity-80`}>
+      <span className={`absolute top-0.5 left-1 text-[8px] ${size === 'sm' ? 'hidden' : ''} leading-none opacity-80`}>
         {isNumber ? value : ''}
       </span>
 
       {/* === Number Card === */}
       {isNumber && (
-        <span className={`relative z-10 ${size === 'sm' ? 'text-lg' : 'text-3xl'} drop-shadow-lg`}>
+        <span className={`relative z-10 ${size === 'sm' ? 'text-base' : 'text-2xl'} drop-shadow-lg`}>
           {value}
         </span>
       )}
@@ -113,44 +113,67 @@ export default function Card({ type, color, value, state = 'default', onClick, s
       {/* === Reverse Card === */}
       {isReverse && !isWild && (
         <div className="relative z-10 flex flex-col items-center">
-          <svg className={`${size === 'sm' ? 'w-6 h-6' : 'w-8 h-8'} drop-shadow-lg`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <svg className={`${size === 'sm' ? 'w-4 h-4' : 'w-6 h-6'} drop-shadow-lg`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M17 2l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M3 11v-1a4 4 0 014-4h14M7 22l-4-4 4-4" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M21 13v1a4 4 0 01-4 4H3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className={`${size === 'sm' ? 'text-[8px]' : 'text-xs'} mt-0.5 font-semibold opacity-80`}>REVERSE</span>
+          {size !== 'sm' && <span className={`text-[9px] mt-0.5 font-semibold opacity-80`}>REVERSE</span>}
         </div>
       )}
 
-      {/* === Reverse4 Card (wild) === */}
+      {/* === Reverse4 Card (wild) — distinctive double-arrow +4 with explosion ring */}
       {type === 'reverse4' && isWild && (
         <div className="relative z-10 flex flex-col items-center">
-          <svg className={`${size === 'sm' ? 'w-5 h-5' : 'w-7 h-7'} drop-shadow-lg absolute -top-3`} viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M15 2l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M3 11v-1a4 4 0 014-4h12M7 22l-4-4 4-4" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M19 13v1a4 4 0 01-4 4H3" strokeLinecap="round" strokeLinejoin="round" />
+          {/* Explosion ring */}
+          <div className="absolute inset-0 rounded-xl border-2 border-white/30 scale-110 animate-pulse pointer-events-none" />
+          <svg className={`${size === 'sm' ? 'w-4 h-4' : 'w-6 h-6'} drop-shadow-lg`} viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M13 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M2 11v-1a4 4 0 014-4h10M9 19l-4-4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M20 13v1a4 4 0 01-4 4H2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className={`${size === 'sm' ? 'text-lg' : 'text-2xl'} font-black drop-shadow-lg mt-2`}>+4</span>
+          <span className={`${size === 'sm' ? 'text-sm' : 'text-lg'} font-black drop-shadow-lg mt-0.5 leading-none`}>+4</span>
+          {size !== 'sm' && <span className={`text-[8px] font-semibold opacity-80 tracking-tight leading-none`}>REV</span>}
         </div>
       )}
 
       {/* === +2 Card === */}
       {type === 'plus2' && !isWild && (
         <div className="relative z-10 flex flex-col items-center">
-          <span className={`${size === 'sm' ? 'text-xl' : 'text-2xl'} font-black drop-shadow-lg`}>+2</span>
-          <span className={`${size === 'sm' ? 'text-[8px]' : 'text-xs'} mt-0.5 font-semibold opacity-80`}>DRAW</span>
+          <span className={`${size === 'sm' ? 'text-base' : 'text-xl'} font-black drop-shadow-lg`}>+2</span>
+          {size !== 'sm' && <span className={`text-[9px] mt-0.5 font-semibold opacity-80`}>DRAW</span>}
         </div>
       )}
 
-      {/* === +4 / +6 / +10 Cards (wild) === */}
-      {(type === 'plus4' || type === 'plus6' || type === 'plus10') && isWild && (
+      {/* === +4 Card (wild) — classic wild with 4-point star burst */}
+      {type === 'plus4' && isWild && (
         <div className="relative z-10 flex flex-col items-center">
-          <span className={`${size === 'sm' ? 'text-xl' : 'text-3xl'} font-black drop-shadow-lg`}>
-            {type === 'plus4' ? '+4' : type === 'plus6' ? '+6' : '+10'}
-          </span>
-          <span className={`${size === 'sm' ? 'text-[8px]' : 'text-xs'} mt-0.5 font-semibold opacity-80`}>
-            {type === 'plus10' ? 'MAX DRAW' : 'DRAW'}
-          </span>
+          {/* 4-point burst */}
+          <div className={`absolute border-2 border-white/30 rotate-45 rounded-sm opacity-60 pointer-events-none ${size === 'sm' ? 'w-7 h-7' : 'w-9 h-9'}`} />
+          <span className={`${size === 'sm' ? 'text-base' : 'text-2xl'} font-black drop-shadow-lg`}>+4</span>
+          {size !== 'sm' && <span className={`text-[9px] mt-0.5 font-semibold opacity-80`}>DRAW</span>}
+        </div>
+      )}
+
+      {/* === +6 Card (wild) — lightning bolt with stacked rings */}
+      {type === 'plus6' && isWild && (
+        <div className="relative z-10 flex flex-col items-center">
+          {/* Double ring burst */}
+          <div className={`absolute rounded-full border-2 border-white/25 pointer-events-none ${size === 'sm' ? 'w-7 h-7' : 'w-8 h-8'}`} />
+          <div className={`absolute rounded-full border border-white/15 pointer-events-none ${size === 'sm' ? 'w-5 h-5' : 'w-6 h-6'}`} />
+          <span className={`${size === 'sm' ? 'text-lg' : 'text-3xl'} font-black drop-shadow-lg leading-none`}>6</span>
+          {size !== 'sm' && <span className={`text-[8px] font-black opacity-70 leading-none -mt-0.5`}>+6 ⚡</span>}
+        </div>
+      )}
+
+      {/* === +10 Card (wild) — MAX DRAW with skull/ominous ring */}
+      {type === 'plus10' && isWild && (
+        <div className="relative z-10 flex flex-col items-center">
+          {/* Triple ominous ring */}
+          <div className={`absolute rounded-full border-[3px] border-red-400/40 pointer-events-none ${size === 'sm' ? 'w-8 h-8' : 'w-10 h-10'}`} />
+          <div className={`absolute rounded-full border-2 border-red-500/30 pointer-events-none ${size === 'sm' ? 'w-6 h-6' : 'w-7 h-7'}`} />
+          <span className={`${size === 'sm' ? 'text-sm' : 'text-xl'} font-black drop-shadow-lg leading-none`}>+10</span>
+          {size !== 'sm' && <span className={`text-[8px] font-black opacity-60 leading-none mt-0.5 tracking-wider`}>☠ MAX</span>}
         </div>
       )}
 
@@ -158,28 +181,28 @@ export default function Card({ type, color, value, state = 'default', onClick, s
       {isSkip && (
         <div className="relative z-10 flex flex-col items-center">
           <div className="relative">
-            <span className={`${size === 'sm' ? 'text-xl' : 'text-3xl'} drop-shadow-lg`}>⊘</span>
+            <span className={`${size === 'sm' ? 'text-lg' : 'text-2xl'} drop-shadow-lg`}>⊘</span>
           </div>
-          <span className={`${size === 'sm' ? 'text-[7px]' : 'text-[10px]'} mt-0.5 font-semibold opacity-80 tracking-tight`}>SKIP ALL</span>
+          {size !== 'sm' && <span className={`text-[9px] mt-0.5 font-semibold opacity-80 tracking-tight`}>SKIP ALL</span>}
         </div>
       )}
 
       {/* === Discard All Card === */}
       {isDiscard && (
         <div className="relative z-10 flex flex-col items-center">
-          <svg className={`${size === 'sm' ? 'w-5 h-5' : 'w-7 h-7'} drop-shadow-lg`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg className={`${size === 'sm' ? 'w-4 h-4' : 'w-6 h-6'} drop-shadow-lg`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M10 11v6M14 11v6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className={`${size === 'sm' ? 'text-[7px]' : 'text-[10px]'} mt-0.5 font-semibold opacity-80 tracking-tight`}>DISCARD</span>
+          {size !== 'sm' && <span className={`text-[9px] mt-0.5 font-semibold opacity-80 tracking-tight`}>DISCARD</span>}
         </div>
       )}
 
       {/* === Smiley Card === */}
       {isSmiley && (
         <div className="relative z-10 flex flex-col items-center">
-          <span className={`${size === 'sm' ? 'text-xl' : 'text-3xl'} drop-shadow-lg`}>😊</span>
-          <span className={`text-[9px] mt-0.5 font-semibold opacity-80`}>SMILEY</span>
+          <span className={`${size === 'sm' ? 'text-lg' : 'text-2xl'} drop-shadow-lg`}>😊</span>
+          {size !== 'sm' && <span className={`text-[8px] mt-0.5 font-semibold opacity-80`}>SMILEY</span>}
         </div>
       )}
 
@@ -189,7 +212,7 @@ export default function Card({ type, color, value, state = 'default', onClick, s
       )}
 
       {/* Corner badge bottom-right (rotated) */}
-      <span className={`absolute bottom-1 right-1.5 text-[10px] ${size === 'sm' ? 'hidden' : ''} rotate-180 leading-none opacity-80`}>
+      <span className={`absolute bottom-0.5 right-1 text-[8px] ${size === 'sm' ? 'hidden' : ''} rotate-180 leading-none opacity-80`}>
         {isNumber ? value : ''}
       </span>
     </motion.div>

@@ -2,12 +2,203 @@
 
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'motion/react';
 import { useGame } from '@/hooks/useGame';
 import TopBar from '@/components/TopBar';
 import GameTable from '@/components/GameTable';
 import RightPanel from '@/components/RightPanel';
 import OverlayLayer from '@/components/OverlayLayer';
-import Button from '@/components/Button';
+
+const playerColors = ['#E44747','#F3C742','#33B56B','#3478F6','#7A4DFF','#FF6B6B','#4CD97B','#AAB2C0'];
+
+const lobbyVariants = {
+  hidden: { opacity: 0, scale: 0.92 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { type: 'spring', stiffness: 200, damping: 20 } as const,
+  },
+};
+
+const playerItemVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    x: 0,
+    transition: { delay: i * 0.08, type: 'spring', stiffness: 200, damping: 18 } as const,
+  }),
+};
+
+function LobbyRoom({ roomId, connected, lobbyPlayers, error, onStart, onLeave }: {
+  roomId: string;
+  connected: boolean;
+  lobbyPlayers: { id: string; name: string }[];
+  error: string | null;
+  onStart: () => void;
+  onLeave: () => void;
+}) {
+  return (
+    <motion.div
+      variants={lobbyVariants}
+      initial="hidden"
+      animate="visible"
+      className="bg-bgSecondary/90 backdrop-blur-md rounded-2xl border border-white/10 p-8 w-full max-w-sm text-center"
+    >
+      {/* Glitch top line */}
+      <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-accent to-transparent mb-6 animate-border-glitch rounded-full" />
+
+      {/* Connection status */}
+      <div className="flex items-center justify-center gap-2 mb-4">
+        <motion.div
+          className={`w-2.5 h-2.5 rounded-full ${connected ? 'bg-success' : 'bg-yellow'}`}
+          animate={{ scale: [1, 1.4, 1], opacity: [1, 0.7, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <span className="text-[10px] font-mono text-textMuted/60 tracking-wider uppercase">
+          {connected ? '// CONNECTION ESTABLISHED' : '// ESTABLISHING LINK...'}
+        </span>
+      </div>
+
+      <h2 className="font-display text-3xl tracking-widest text-white mb-1">LOBBY</h2>
+
+      {/* Room code */}
+      <div className="flex items-center justify-center gap-2 mb-5">
+        <span className="font-mono text-base tracking-[0.4em] text-accent font-bold bg-bgTertiary/60 px-5 py-2 rounded-lg border border-accent/20">
+          {roomId}
+        </span>
+        <motion.button
+          onClick={(e) => {
+            navigator.clipboard.writeText(roomId);
+            const btn = e.currentTarget;
+            const original = btn.innerHTML;
+            btn.innerHTML = '<svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+            setTimeout(() => { btn.innerHTML = original; }, 1500);
+          }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="p-2 rounded-lg bg-bgTertiary hover:bg-bgTertiary/80 text-textMuted hover:text-accent transition-colors cursor-pointer"
+          title="Copy room code"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </motion.button>
+      </div>
+
+      <p className="text-[10px] text-textMuted/40 font-mono tracking-wider mb-6">
+        SHARE THIS KEY WITH ALLIES
+      </p>
+
+      {/* Player list */}
+      <AnimatePresence mode="wait">
+        {lobbyPlayers.length > 0 ? (
+          <motion.div
+            key="players"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-5"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-mono text-textMuted/50 tracking-wider uppercase">
+                // SQUAD [{lobbyPlayers.length}]
+              </span>
+            </div>
+            <div className="space-y-1.5 max-h-48 overflow-y-auto scrollbar-thin">
+              {lobbyPlayers.map((p, i) => (
+                <motion.div
+                  key={p.id}
+                  custom={i}
+                  variants={playerItemVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-bgTertiary/40 border border-white/5 hover:border-white/10 transition-colors"
+                >
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                    style={{ backgroundColor: playerColors[i % playerColors.length] }}
+                  >
+                    {p.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-sm text-textPrimary flex-1 text-left truncate font-mono tracking-wide">
+                    {p.name}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <motion.div
+                      className="w-1.5 h-1.5 rounded-full bg-success"
+                      animate={{ opacity: [1, 0.3, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                    {i === 0 && (
+                      <span className="text-[9px] font-mono text-accent/70 tracking-wider px-1.5 py-0.5 rounded-full bg-accent/5 ml-1">
+                        HOST
+                      </span>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        ) : connected ? (
+          <motion.div
+            key="waiting"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-5 py-6 text-center"
+          >
+            <motion.div
+              className="text-4xl mb-2"
+              animate={{ y: [0, -8, 0], rotate: [0, -5, 5, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              👋
+            </motion.div>
+            <p className="text-textMuted text-sm font-mono">Awaiting recruits...</p>
+            <p className="text-textMuted/40 text-[10px] font-mono mt-1 tracking-wider">SHARE THE ROOM KEY ABOVE</p>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="mb-4 px-4 py-2.5 rounded-lg bg-danger/15 border border-danger/30 text-danger text-xs font-mono"
+        >
+          <span className="text-danger/50">[!] </span>{error}
+        </motion.div>
+      )}
+
+      <div className="flex gap-3 justify-center">
+        <motion.button
+          onClick={onStart}
+          disabled={!connected || lobbyPlayers.length < 2}
+          whileHover={connected && lobbyPlayers.length >= 2 ? { scale: 1.03 } : {}}
+          whileTap={connected && lobbyPlayers.length >= 2 ? { scale: 0.97 } : {}}
+          className={`
+            px-6 py-3 rounded-lg font-display text-xl tracking-wider transition-all duration-200 cursor-pointer
+            ${connected && lobbyPlayers.length >= 2
+              ? 'bg-gradient-to-r from-neonPink to-neonOrange text-white shadow-lg shadow-neonPink/30 hover:shadow-neonPink/50'
+              : 'bg-bgTertiary/50 text-textMuted/30 cursor-not-allowed'
+            }
+          `}
+        >
+          {!connected ? 'CONNECTING' : lobbyPlayers.length < 2 ? `WAITING (${lobbyPlayers.length}/2)` : `DEPLOY (${lobbyPlayers.length})`}
+        </motion.button>
+        <motion.button
+          onClick={onLeave}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          className="px-4 py-3 rounded-lg bg-bgTertiary/80 hover:bg-bgTertiary text-textPrimary border border-white/10 hover:border-white/20 font-display text-lg tracking-wider transition-all cursor-pointer"
+        >
+          ABORT
+        </motion.button>
+      </div>
+
+      {/* Bottom glitch line */}
+      <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-neonCyan to-transparent mt-6 animate-border-glitch rounded-full" />
+    </motion.div>
+  );
+}
 
 function GameContent() {
   const searchParams = useSearchParams();
@@ -19,7 +210,7 @@ function GameContent() {
     gameState, playerId, connected, error, lobbyPlayers, roomId: rtcRoomId,
     joinRoom, startGame,
     selectedCardId, showChangeColor, showDiscardAll, toast,
-    handleCardClick, handleDraw, handleSayUno,
+    handleCardClick, handleDraw, handleSkipTurn, handleSayUno,
     handleColorSelect, handleDiscardSelect,
     handleEmote, handleLeave, clearToast, cancelColor,
     isMyTurn, isLoading,
@@ -67,114 +258,38 @@ function GameContent() {
   if (!actualRoomId || !playerName) {
     return (
       <div className="flex-1 flex items-center justify-center bg-bgPrimary">
-        <div className="text-center">
-          <p className="text-textMuted mb-4">Missing room or player info.</p>
-          <Button variant="primary" onClick={() => router.push('/')}>Back to Lobby</Button>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <p className="text-textMuted font-mono text-sm mb-4 tracking-wider">
+            <span className="text-danger/50">[!] </span>MISSING ROOM OR PLAYER INFO
+          </p>
+          <motion.button
+            onClick={() => router.push('/')}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            className="px-6 py-3 rounded-lg bg-gradient-to-r from-neonPink to-neonOrange text-white font-display text-xl tracking-wider cursor-pointer"
+          >
+            RETURN TO BASE
+          </motion.button>
+        </motion.div>
       </div>
     );
   }
 
   if (!hasJoined || isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-bgPrimary">
-        <div className="bg-bgSecondary rounded-2xl border border-textMuted/10 p-8 w-full max-w-sm text-center">
-          {/* Room header with animated pulse */}
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <div className={`w-2.5 h-2.5 rounded-full ${connected ? 'bg-success animate-uno-pulse' : 'bg-yellow animate-uno-pulse'}`} />
-            <span className="text-xs font-medium text-textMuted tracking-wider uppercase">
-              {connected ? 'Connected' : 'Connecting'}
-            </span>
-          </div>
-
-          <h2 className="text-2xl font-bold text-textPrimary mb-1">Room Lobby</h2>
-          
-          {/* Room code with copy */}
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <span className="font-mono text-lg tracking-widest text-wild font-bold bg-bgTertiary/50 px-4 py-1.5 rounded-lg border border-wild/20">
-              {actualRoomId}
-            </span>
-            <button
-              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                navigator.clipboard.writeText(actualRoomId);
-                const btn = e.currentTarget;
-                btn.innerHTML = '<svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
-                setTimeout(() => {
-                  btn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>';
-                }, 1500);
-              }}
-              className="p-1.5 rounded-lg bg-bgTertiary hover:bg-bgTertiary/80 text-textMuted hover:text-textPrimary transition-colors cursor-pointer"
-              title="Copy room code"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="text-xs text-textMuted mb-5">
-            Share this code with friends to join
-          </div>
-
-          {/* Player list */}
-          {lobbyPlayers.length > 0 && (
-            <div className="mb-5">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-textMuted uppercase tracking-wider">
-                  Players ({lobbyPlayers.length})
-                </span>
-              </div>
-              <div className="space-y-1.5 max-h-48 overflow-y-auto scrollbar-thin">
-                {lobbyPlayers.map((p, i) => (
-                  <div
-                    key={p.id}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-bgTertiary/40 border border-textMuted/5 animate-fade-in"
-                    style={{ animationDelay: `${i * 50}ms` }}
-                  >
-                    <div
-                      className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                      style={{ backgroundColor: ['#E44747','#F3C742','#33B56B','#3478F6','#7A4DFF','#FF6B6B','#4CD97B','#AAB2C0'][i % 8] }}
-                    >
-                      {p.name.charAt(0).toUpperCase()}
-                    </div>
-                    <span className="text-sm text-textPrimary flex-1 text-left truncate">{p.name}</span>
-                    {i === 0 && (
-                      <span className="text-[10px] text-success font-semibold px-1.5 py-0.5 rounded-full bg-success/10">Host</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {lobbyPlayers.length === 0 && connected && (
-            <div className="mb-5 py-6 text-center">
-              <div className="text-3xl mb-2">👋</div>
-              <p className="text-textMuted text-sm">Waiting for players to join...</p>
-              <p className="text-textMuted/50 text-xs mt-1">Share the room code above</p>
-            </div>
-          )}
-
-          {error && (
-            <div className="mb-4 px-4 py-2.5 rounded-lg bg-danger/15 border border-danger/25 text-danger text-sm font-medium">
-              {error}
-            </div>
-          )}
-          
-          <div className="flex gap-3 justify-center">
-            <Button
-              variant="primary"
-              onClick={() => startGame()}
-              disabled={!connected || lobbyPlayers.length < 2}
-              title={!connected ? 'Waiting for server connection...' : lobbyPlayers.length < 2 ? 'Need at least 2 players to start' : 'Ready to start'}
-            >
-              {!connected ? 'Connecting...' : lobbyPlayers.length < 2 ? `Waiting (${lobbyPlayers.length}/2)` : `Start Game (${lobbyPlayers.length})`}
-            </Button>
-            <Button variant="secondary" onClick={() => router.push('/')}>
-              Leave
-            </Button>
-          </div>
-        </div>
+      <div className="flex-1 flex items-center justify-center bg-bgPrimary px-4">
+        <LobbyRoom
+          roomId={actualRoomId}
+          connected={connected}
+          lobbyPlayers={lobbyPlayers}
+          error={error}
+          onStart={startGame}
+          onLeave={() => { handleLeave(); router.push('/'); }}
+        />
       </div>
     );
   }
@@ -182,7 +297,13 @@ function GameContent() {
   if (!gameState) {
     return (
       <div className="flex-1 flex items-center justify-center bg-bgPrimary">
-        <p className="text-textMuted">Loading game...</p>
+        <motion.div
+          animate={{ opacity: [1, 0.3, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+          className="text-textMuted font-mono text-sm tracking-wider"
+        >
+          LOADING...
+        </motion.div>
       </div>
     );
   }
@@ -191,7 +312,12 @@ function GameContent() {
   const winner = gameState.players.find((p) => p.id === gameState.winnerId);
 
   return (
-    <div className="flex-1 flex flex-col h-screen">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="flex-1 flex flex-col h-screen"
+    >
       <TopBar
         roomId={actualRoomId}
         currentPlayer={currentPlayerName}
@@ -207,14 +333,15 @@ function GameContent() {
           onDraw={handleDrawClick}
           drawDisabled={hasDrawn || gameState.pendingDraw <= 0 || !isMyTurn}
           handDisabled={isGameFinished}
-          hasDrawn={hasDrawn}
         />
         <RightPanel
           onDraw={handleDrawClick}
+          onSkipTurn={handleSkipTurn}
           onSayUno={handleSayUno}
           onLeave={handleLeave}
           onEmote={handleEmote}
           disabled={!isMyTurn || isGameFinished}
+          hasDrawn={hasDrawn}
           unoEligible={!!unoEligible}
         />
       </div>
@@ -229,12 +356,12 @@ function GameContent() {
         onColorSelect={handleColorSelect}
         onDiscardSelect={handleDiscardSelect}
         onPlayAgain={() => window.location.reload()}
-        onLeave={() => router.push('/')}
+        onLeave={() => { handleLeave(); router.push('/'); }}
         onCancelColor={cancelColor}
         toast={toast}
         onToastDismiss={clearToast}
       />
-    </div>
+    </motion.div>
   );
 }
 
@@ -242,7 +369,13 @@ export default function GamePage() {
   return (
     <Suspense fallback={
       <div className="flex-1 flex items-center justify-center bg-bgPrimary">
-        <p className="text-textMuted">Loading game...</p>
+        <motion.div
+          animate={{ opacity: [1, 0.3, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+          className="text-textMuted font-mono text-sm tracking-wider"
+        >
+          INITIALIZING...
+        </motion.div>
       </div>
     }>
       <GameContent />

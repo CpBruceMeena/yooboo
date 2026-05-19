@@ -19,6 +19,7 @@ interface UseWebRTCReturn {
   startGame: () => void;
   playCard: (cardId: string, chosenColor?: Exclude<Card['color'], 'wild'>) => void;
   drawCard: () => void;
+  skipTurn: () => void;
   discardColor: (color: Exclude<Card['color'], 'wild'>) => void;
   sayUno: () => void;
   leaveRoom: () => void;
@@ -170,6 +171,10 @@ export function useWebRTC(): UseWebRTCReturn {
     socketRef.current?.emit('draw_card');
   }, []);
 
+  const skipTurn = useCallback(() => {
+    socketRef.current?.emit('skip_turn');
+  }, []);
+
   const discardColor = useCallback((color: Exclude<Card['color'], 'wild'>) => {
     socketRef.current?.emit('discard_color', { color });
   }, []);
@@ -198,6 +203,7 @@ export function useWebRTC(): UseWebRTCReturn {
     startGame,
     playCard,
     drawCard,
+    skipTurn,
     discardColor,
     sayUno,
     leaveRoom,

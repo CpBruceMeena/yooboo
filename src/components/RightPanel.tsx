@@ -5,22 +5,26 @@ import GameActions from './GameActions';
 
 interface RightPanelProps {
   onDraw: () => void;
+  onSkipTurn: () => void;
   onSayUno: () => void;
   onLeave: () => void;
   onEmote: (emote: string) => void;
   disabled?: boolean;
+  hasDrawn?: boolean;
   unoEligible?: boolean;
 }
 
-export default function RightPanel({ onDraw, onSayUno, onLeave, onEmote, disabled, unoEligible }: RightPanelProps) {
+export default function RightPanel({ onDraw, onSkipTurn, onSayUno, onLeave, onEmote, disabled, hasDrawn, unoEligible }: RightPanelProps) {
   return (
     <div className="w-48 bg-bgSecondary border-l border-textMuted/10 flex flex-col gap-4 p-4">
       <div>
         <h3 className="text-xs font-semibold text-textMuted uppercase tracking-wider mb-2">Actions</h3>
         <GameActions
           onDraw={onDraw}
+          onSkipTurn={onSkipTurn}
           onSayUno={onSayUno}
           disabled={disabled}
+          hasDrawn={hasDrawn}
           unoEligible={unoEligible}
         />
       </div>
