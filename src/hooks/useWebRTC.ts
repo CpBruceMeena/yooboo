@@ -58,26 +58,27 @@ export function useWebRTC(): WebRTCReturn {
   const joinedRoomRef = useRef<{ roomId: string; playerName: string } | null>(null);
 
   useEffect(() => {
-    // Smart connection: localhost → direct to server port (WebSocket works)
-    // External/ngrok → same-origin through Next.js proxy (polling only, WebSocket won't proxy)
-    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
-    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
-
+    // Connect same-origin — the reverse proxy (port 3000) handles Socket.IO at /api/socketio
+    // and proxies everything else to Next.js (port 3001). Works for localhost and ngrok.
     const explicitUrl = process.env.NEXT_PUBLIC_SERVER_URL;
-    const socketUrl = explicitUrl || (isLocal ? `http://${hostname}:3001` : undefined);
 
-    const socket = io(socketUrl, {
-      path: '/socket.io',
-      transports: isLocal ? ['websocket', 'polling'] : ['polling'],
-      timeout: 10000,
-      reconnectionAttempts: 10,
+    const socket = io(explicitUrl || undefined, {
+      path: '/api/socketio',
+      // Use polling-first, then upgrade to WebSocket once connected.
+      // http-proxy on the combined server handles WebSocket upgrades for Socket.IO paths.
+      transports: ['polling', 'websocket'],
+      timeout: 20000,
+      reconnectionAttempts: 15,
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
       reconnection: true,
+      // Force new connection to avoid stale sessions
+      forceNew: true,
     });
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      console.log('socket connected', socket.id, 'to', socketUrl);
+      console.log('socket connected', socket.id);
       setConnected(true);
       setError(null);
       // Priority 1: pending join (first-time connect, room not yet joined)

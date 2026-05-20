@@ -70,6 +70,7 @@ function createInitialState(roomId: string, players: { id: string; name: string 
 export function setupGameServer(httpServer: HTTPServer) {
   const io = new SocketIOServer(httpServer, {
     cors: { origin: '*', methods: ['GET', 'POST'] },
+    path: '/api/socketio',
   });
 
   const clientMap = new Map<string, ClientInfo>();
