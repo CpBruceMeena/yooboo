@@ -174,7 +174,7 @@ export default function DiscardAllModal({ open, hand, presetColor, onSelect }: D
           disabled={!selectedColor}
           className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 cursor-pointer ${
             selectedColor
-              ? 'bg-gradient-to-r from-neonPink to-neonOrange text-white shadow-lg'
+              ? 'bg-gradient-to-r from-gold to-goldGlow text-bgWarm shadow-lg shadow-gold/25'
               : 'bg-bgTertiary/50 text-textMuted/30 cursor-not-allowed'
           }`}
         >

@@ -13,7 +13,7 @@ export default function EmotePanel({ onEmote }: EmotePanelProps) {
         <button
           key={emote}
           onClick={() => onEmote(emote)}
-          className="w-8 h-8 flex items-center justify-center text-lg rounded-lg bg-bgTertiary hover:bg-bgTertiary/80 transition-colors cursor-pointer"
+          className="w-8 h-8 flex items-center justify-center text-lg rounded-lg bg-[#130E0A]/60 hover:bg-[#130E0A] border border-white/5 hover:border-gold/20 transition-all cursor-pointer"
         >
           {emote}
         </button>

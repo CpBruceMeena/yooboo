@@ -80,6 +80,39 @@ body.homepage::-webkit-scrollbar-thumb:hover {
   background: #3A2F28;
 }
 
+/* ========== GAME CASINO THEME ========== */
+.game-casino-theme {
+  --color-bgPrimary: #0A0705;
+  --color-bgSecondary: #1A1512;
+  --color-bgTertiary: #130E0A;
+  --color-textPrimary: #F2EBD9;
+  --color-textMuted: #C4B89B;
+  --color-accent: #C9952A;
+  --color-danger: #C0392B;
+  --color-success: #E8B84B;
+}
+
+.game-casino-theme::before {
+  display: none;
+}
+
+.game-casino-theme::after {
+  opacity: 0.02;
+}
+
+.game-casino-theme::-webkit-scrollbar {
+  width: 4px;
+}
+
+.game-casino-theme::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.game-casino-theme::-webkit-scrollbar-thumb {
+  background: #2A1F18;
+  border-radius: 2px;
+}
+
 /* ========== ARCADE GLITCH FOUNDATION ========== */
 
 /* Grid overlay */

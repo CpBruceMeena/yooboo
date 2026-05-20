@@ -11,7 +11,7 @@ import RightPanel from '@/components/RightPanel';
 import OverlayLayer from '@/components/OverlayLayer';
 import SmileyReveal from '@/components/SmileyReveal';
 
-const playerColors = ['#E44747','#F3C742','#33B56B','#3478F6','#7A4DFF','#FF6B6B','#4CD97B','#AAB2C0'];
+const playerColors = ['#C9952A','#E8B84B','#C0392B','#F2EBD9','#7A4DFF','#FF6B6B','#4CD97B','#AAB2C0'];
 
 const lobbyVariants = {
   hidden: { opacity: 0, scale: 0.92 },
@@ -44,41 +44,40 @@ function LobbyRoom({ roomId, connected, lobbyPlayers, error, onStart, onLeave }:
       variants={lobbyVariants}
       initial="hidden"
       animate="visible"
-      className="bg-bgSecondary/90 backdrop-blur-md rounded-2xl border border-white/10 p-8 w-full max-w-sm text-center"
+      className="bg-[#1A1512]/90 backdrop-blur-md rounded-2xl border border-gold/10 p-8 w-full max-w-sm text-center"
     >
-      {/* Glitch top line */}
-      <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-accent to-transparent mb-6 animate-border-glitch rounded-full" />
+      {/* Gold top line */}
+      <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-gold/40 to-transparent mb-6 rounded-full" />
 
       {/* Connection status */}
       <div className="flex items-center justify-center gap-2 mb-4">
         <motion.div
-          className={`w-2.5 h-2.5 rounded-full ${connected ? 'bg-success' : 'bg-yellow'}`}
+          className={`w-2.5 h-2.5 rounded-full ${connected ? 'bg-goldGlow shadow-[0_0_6px_rgba(232,184,75,0.6)]' : 'bg-goldMuted'}`}
           animate={{ scale: [1, 1.4, 1], opacity: [1, 0.7, 1] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
         />
-        <span className="text-[10px] font-mono text-textMuted/60 tracking-wider uppercase">
+        <span className="text-[10px] font-mono text-creamMuted/60 tracking-wider uppercase">
           {connected ? '// CONNECTION ESTABLISHED' : '// ESTABLISHING LINK...'}
         </span>
       </div>
 
-      <h2 className="font-display text-3xl tracking-widest text-white mb-1">LOBBY</h2>
+      <h2 className="font-serif text-3xl font-bold tracking-wider text-cream mb-1 gold-text-shadow">LOBBY</h2>
 
       {/* Room code */}
       <div className="flex items-center justify-center gap-2 mb-5">
-        <span className="font-mono text-base tracking-[0.4em] text-accent font-bold bg-bgTertiary/60 px-5 py-2 rounded-lg border border-accent/20">
+        <span className="font-mono text-base tracking-[0.4em] text-goldGlow font-bold bg-[#130E0A]/80 px-5 py-2 rounded-lg border border-gold/20">
           {roomId}
         </span>
         <motion.button
           onClick={(e) => {
             navigator.clipboard.writeText(roomId);
             const btn = e.currentTarget;
-            const original = btn.innerHTML;
-            btn.innerHTML = '<svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
-            setTimeout(() => { btn.innerHTML = original; }, 1500);
+            btn.style.color = '#E8B84B';
+            setTimeout(() => { btn.style.color = ''; }, 1500);
           }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          className="p-2 rounded-lg bg-bgTertiary hover:bg-bgTertiary/80 text-textMuted hover:text-accent transition-colors cursor-pointer"
+          className="p-2 rounded-lg bg-[#130E0A]/80 hover:bg-[#130E0A] text-creamMuted hover:text-goldGlow transition-colors cursor-pointer"
           title="Copy room code"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,7 +86,7 @@ function LobbyRoom({ roomId, connected, lobbyPlayers, error, onStart, onLeave }:
         </motion.button>
       </div>
 
-      <p className="text-[10px] text-textMuted/40 font-mono tracking-wider mb-6">
+      <p className="text-[10px] text-creamMuted/30 font-mono tracking-wider mb-6">
         SHARE THIS KEY WITH ALLIES
       </p>
 
@@ -101,7 +100,7 @@ function LobbyRoom({ roomId, connected, lobbyPlayers, error, onStart, onLeave }:
             className="mb-5"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-mono text-textMuted/50 tracking-wider uppercase">
+              <span className="text-[10px] font-mono text-creamMuted/40 tracking-wider uppercase">
                 // SQUAD [{lobbyPlayers.length}]
               </span>
             </div>
@@ -113,7 +112,7 @@ function LobbyRoom({ roomId, connected, lobbyPlayers, error, onStart, onLeave }:
                   variants={playerItemVariants}
                   initial="hidden"
                   animate="visible"
-                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-bgTertiary/40 border border-white/5 hover:border-white/10 transition-colors"
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-[#130E0A]/50 border border-white/5 hover:border-gold/15 transition-colors"
                 >
                   <div
                     className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
@@ -121,17 +120,17 @@ function LobbyRoom({ roomId, connected, lobbyPlayers, error, onStart, onLeave }:
                   >
                     {p.name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-sm text-textPrimary flex-1 text-left truncate font-mono tracking-wide">
+                  <span className="text-sm text-cream flex-1 text-left truncate font-mono tracking-wide">
                     {p.name}
                   </span>
                   <div className="flex items-center gap-1">
                     <motion.div
-                      className="w-1.5 h-1.5 rounded-full bg-success"
+                      className="w-1.5 h-1.5 rounded-full bg-goldGlow"
                       animate={{ opacity: [1, 0.3, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     />
                     {i === 0 && (
-                      <span className="text-[9px] font-mono text-accent/70 tracking-wider px-1.5 py-0.5 rounded-full bg-accent/5 ml-1">
+                      <span className="text-[9px] font-mono text-gold/70 tracking-wider px-1.5 py-0.5 rounded-full bg-gold/5 ml-1">
                         HOST
                       </span>
                     )}
@@ -152,10 +151,10 @@ function LobbyRoom({ roomId, connected, lobbyPlayers, error, onStart, onLeave }:
               animate={{ y: [0, -8, 0], rotate: [0, -5, 5, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             >
-              👋
+              🃏
             </motion.div>
-            <p className="text-textMuted text-sm font-mono">Awaiting recruits...</p>
-            <p className="text-textMuted/40 text-[10px] font-mono mt-1 tracking-wider">SHARE THE ROOM KEY ABOVE</p>
+            <p className="text-creamMuted text-sm font-mono">Awaiting recruits...</p>
+            <p className="text-creamMuted/30 text-[10px] font-mono mt-1 tracking-wider">SHARE THE ROOM KEY ABOVE</p>
           </motion.div>
         ) : null}
       </AnimatePresence>
@@ -164,9 +163,9 @@ function LobbyRoom({ roomId, connected, lobbyPlayers, error, onStart, onLeave }:
         <motion.div
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
-          className="mb-4 px-4 py-2.5 rounded-lg bg-danger/15 border border-danger/30 text-danger text-xs font-mono"
+          className="mb-4 px-4 py-2.5 rounded-lg bg-crimson/15 border border-crimson/30 text-crimson text-xs font-mono"
         >
-          <span className="text-danger/50">[!] </span>{error}
+          <span className="text-crimson/50">[!] </span>{error}
         </motion.div>
       )}
 
@@ -177,10 +176,10 @@ function LobbyRoom({ roomId, connected, lobbyPlayers, error, onStart, onLeave }:
           whileHover={connected && lobbyPlayers.length >= 2 ? { scale: 1.03 } : {}}
           whileTap={connected && lobbyPlayers.length >= 2 ? { scale: 0.97 } : {}}
           className={`
-            px-6 py-3 rounded-lg font-display text-xl tracking-wider transition-all duration-200 cursor-pointer
+            px-6 py-3 rounded-lg font-serif text-xl font-bold tracking-wider transition-all duration-200 cursor-pointer
             ${connected && lobbyPlayers.length >= 2
-              ? 'bg-gradient-to-r from-neonPink to-neonOrange text-white shadow-lg shadow-neonPink/30 hover:shadow-neonPink/50'
-              : 'bg-bgTertiary/50 text-textMuted/30 cursor-not-allowed'
+              ? 'bg-gradient-to-r from-gold to-goldGlow text-bgWarm shadow-lg shadow-gold/25 hover:shadow-gold/40'
+              : 'bg-[#130E0A]/50 text-creamMuted/30 cursor-not-allowed'
             }
           `}
         >
@@ -190,14 +189,14 @@ function LobbyRoom({ roomId, connected, lobbyPlayers, error, onStart, onLeave }:
           onClick={onLeave}
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
-          className="px-4 py-3 rounded-lg bg-bgTertiary/80 hover:bg-bgTertiary text-textPrimary border border-white/10 hover:border-white/20 font-display text-lg tracking-wider transition-all cursor-pointer"
+          className="px-4 py-3 rounded-lg bg-[#130E0A]/80 hover:bg-[#130E0A] text-creamMuted border border-white/10 hover:border-gold/20 font-serif text-lg tracking-wider transition-all cursor-pointer"
         >
           ABORT
         </motion.button>
       </div>
 
-      {/* Bottom glitch line */}
-      <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-neonCyan to-transparent mt-6 animate-border-glitch rounded-full" />
+      {/* Bottom gold line */}
+      <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-gold/30 to-transparent mt-6 rounded-full" />
     </motion.div>
   );
 }
@@ -235,6 +234,12 @@ function GameContent() {
     hasRequestedJoin.current = true;
     joinRoom(actualRoomId, playerName);
   }, [actualRoomId, playerName, joinRoom]);
+
+  // Apply casino theme class to body
+  useEffect(() => {
+    document.body.classList.add('game-casino-theme');
+    return () => document.body.classList.remove('game-casino-theme');
+  }, []);
 
   useEffect(() => {
     if (gameState && gameState.status === 'in_game') {
@@ -332,14 +337,14 @@ function GameContent() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center"
         >
-          <p className="text-textMuted font-mono text-sm mb-4 tracking-wider">
-            <span className="text-danger/50">[!] </span>MISSING ROOM OR PLAYER INFO
+          <p className="text-creamMuted font-mono text-sm mb-4 tracking-wider">
+            <span className="text-crimson/50">[!] </span>MISSING ROOM OR PLAYER INFO
           </p>
           <motion.button
             onClick={() => router.push('/')}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            className="px-6 py-3 rounded-lg bg-gradient-to-r from-neonPink to-neonOrange text-white font-display text-xl tracking-wider cursor-pointer"
+            className="px-6 py-3 rounded-lg bg-gradient-to-r from-gold to-goldGlow text-bgWarm font-serif text-xl font-bold tracking-wider cursor-pointer"
           >
             RETURN TO BASE
           </motion.button>
@@ -369,7 +374,7 @@ function GameContent() {
         <motion.div
           animate={{ opacity: [1, 0.3, 1] }}
           transition={{ duration: 1.5, repeat: Infinity }}
-          className="text-textMuted font-mono text-sm tracking-wider"
+          className="text-creamMuted font-mono text-sm tracking-wider"
         >
           LOADING...
         </motion.div>
@@ -455,7 +460,7 @@ function GameContent() {
             animate={{ opacity: [0, 0.3, 0] }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="fixed inset-0 z-40 pointer-events-none bg-gradient-to-br from-wild/20 via-purple-500/10 to-red-500/20"
+            className="fixed inset-0 z-40 pointer-events-none bg-gradient-to-br from-gold/20 via-goldMuted/10 to-crimson/20"
           />
         )}
       </AnimatePresence>
@@ -472,7 +477,7 @@ function GameContent() {
             className="fixed inset-0 z-40 pointer-events-none flex items-center justify-center"
           >
             <motion.div
-              className="flex items-center gap-4 px-8 py-4 rounded-2xl bg-bgSecondary/80 backdrop-blur-md border-2 border-accent/50 shadow-2xl"
+              className="flex items-center gap-4 px-8 py-4 rounded-2xl bg-[#1A1512]/80 backdrop-blur-md border-2 border-gold/40 shadow-2xl"
               animate={{ rotate: [0, -5, 5, -3, 3, 0] }}
               transition={{ duration: 0.6, ease: 'easeInOut' }}
             >
@@ -483,11 +488,11 @@ function GameContent() {
               >
                 🔄
               </motion.span>
-              <span className="text-3xl font-black text-white tracking-wider drop-shadow-lg">
+              <span className="text-3xl font-serif font-bold text-cream tracking-wider drop-shadow-lg gold-text-shadow">
                 REVERSE!
               </span>
               <motion.span
-                className="text-lg text-accent font-mono"
+                className="text-lg text-goldGlow font-mono"
                 animate={{ opacity: [0, 1, 0] }}
                 transition={{ duration: 1, repeat: Infinity }}
               >
@@ -510,8 +515,8 @@ function GameContent() {
             className="fixed top-6 left-1/2 -translate-x-1/2 z-50"
           >
             <motion.div
-              className="bg-gradient-to-r from-wild via-purple-600 to-red-500 py-3 px-8 rounded-2xl border-2 border-white/30 shadow-2xl flex items-center gap-4"
-              animate={{ boxShadow: ['0 0 20px rgba(255,0,100,0.3)', '0 0 40px rgba(255,0,100,0.6)', '0 0 20px rgba(255,0,100,0.3)'] }}
+              className="bg-gradient-to-r from-gold via-goldGlow to-goldMuted py-3 px-8 rounded-2xl border-2 border-cream/30 shadow-2xl flex items-center gap-4"
+              animate={{ boxShadow: ['0 0 20px rgba(201,149,42,0.3)', '0 0 40px rgba(232,184,75,0.6)', '0 0 20px rgba(201,149,42,0.3)'] }}
               transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
             >
               <motion.span
@@ -523,13 +528,13 @@ function GameContent() {
               </motion.span>
               <div className="text-center">
                 <motion.span
-                  className="text-white font-black text-xl tracking-widest block drop-shadow-lg"
+                  className="text-bgWarm font-black text-xl tracking-widest block drop-shadow-lg"
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 0.6, repeat: Infinity }}
                 >
                   UNO! 🃏
                 </motion.span>
-                <span className="text-white/80 text-sm font-semibold">
+                <span className="text-bgWarm/80 text-sm font-semibold">
                   {unoCall.playerName}
                 </span>
               </div>
@@ -555,7 +560,7 @@ export default function GamePage() {
         <motion.div
           animate={{ opacity: [1, 0.3, 1] }}
           transition={{ duration: 1.5, repeat: Infinity }}
-          className="text-textMuted font-mono text-sm tracking-wider"
+          className="text-creamMuted font-mono text-sm tracking-wider"
         >
           INITIALIZING...
         </motion.div>

@@ -7,16 +7,22 @@ import { useState } from 'react';
 export default function JoinCTA() {
   const router = useRouter();
   const [name, setName] = useState('');
+  const [roomId, setRoomId] = useState('');
   const [showInput, setShowInput] = useState(false);
 
   const handlePlay = () => {
     setShowInput(true);
   };
 
-  const handleSubmit = () => {
+  const handleCreateRoom = () => {
     if (!name.trim()) return;
-    const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
-    router.push(`/game?room=${roomId}&name=${encodeURIComponent(name.trim())}`);
+    const newRoom = Math.random().toString(36).substring(2, 8).toUpperCase();
+    router.push(`/game?room=${newRoom}&name=${encodeURIComponent(name.trim())}`);
+  };
+
+  const handleJoinRoom = () => {
+    if (!name.trim() || !roomId.trim()) return;
+    router.push(`/game?room=${encodeURIComponent(roomId.trim().toUpperCase())}&name=${encodeURIComponent(name.trim())}`);
   };
 
   // Floating card data
@@ -166,7 +172,7 @@ export default function JoinCTA() {
         />
       </div>
 
-      {/* Name input modal */}
+      {/* Name & Room input modal */}
       {showInput && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -181,40 +187,77 @@ export default function JoinCTA() {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="font-serif text-2xl font-bold text-cream mb-2">Your Callsign</h3>
-            <p className="font-serif-alt text-sm text-creamMuted/50 italic mb-6">What name shall the table know you by?</p>
+            <p className="font-serif-alt text-sm text-creamMuted/50 italic mb-6">Name yourself and claim your seat.</p>
 
             <input
               type="text"
-              placeholder="Enter your name"
+              placeholder="Your name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreateRoom()}
               maxLength={16}
-              className="w-full px-4 py-3 rounded-lg bg-bgWarm border border-gold/20 text-cream placeholder-creamMuted/30 text-sm outline-none font-mono tracking-wider focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all duration-200 mb-4"
+              className="w-full px-4 py-3 rounded-lg bg-bgWarm border border-gold/20 text-cream placeholder-creamMuted/30 text-sm outline-none font-mono tracking-wider focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all duration-200 mb-3"
               autoFocus
             />
 
-            <div className="flex gap-3">
+            <div className="relative mb-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gold/10" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="px-3 bg-surface text-[10px] font-mono tracking-wider text-creamMuted/40 uppercase">or join existing</span>
+              </div>
+            </div>
+
+            <input
+              type="text"
+              placeholder="Room code (optional)"
+              value={roomId}
+              onChange={(e) => setRoomId(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === 'Enter' && (roomId.trim() ? handleJoinRoom() : handleCreateRoom())}
+              maxLength={8}
+              className="w-full px-4 py-3 rounded-lg bg-bgWarm border border-gold/20 text-cream placeholder-creamMuted/30 text-sm outline-none font-mono tracking-widest focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all duration-200 mb-4 uppercase"
+            />
+
+            <div className="flex flex-col gap-2">
               <motion.button
-                onClick={handleSubmit}
+                onClick={handleCreateRoom}
                 disabled={!name.trim()}
                 whileHover={name.trim() ? { scale: 1.02 } : {}}
                 whileTap={name.trim() ? { scale: 0.98 } : {}}
                 className={`
-                  flex-1 py-3 rounded-lg text-sm font-mono tracking-[0.2em] uppercase font-semibold transition-all cursor-pointer
+                  w-full py-3 rounded-lg text-sm font-mono tracking-[0.2em] uppercase font-semibold transition-all cursor-pointer
                   ${name.trim()
                     ? 'bg-gradient-to-r from-gold to-goldGlow text-bgWarm shadow-lg shadow-gold/25'
                     : 'bg-charcoal/50 text-creamMuted/30 cursor-not-allowed'}
                 `}
               >
-                ENTER
+                CREATE NEW ROOM
               </motion.button>
+              {roomId.trim() && (
+                <motion.button
+                  onClick={handleJoinRoom}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  disabled={!name.trim() || !roomId.trim()}
+                  whileHover={name.trim() && roomId.trim() ? { scale: 1.02 } : {}}
+                  whileTap={name.trim() && roomId.trim() ? { scale: 0.98 } : {}}
+                  className={`
+                    w-full py-3 rounded-lg text-sm font-mono tracking-[0.2em] uppercase font-semibold transition-all cursor-pointer
+                    ${name.trim() && roomId.trim()
+                      ? 'bg-charcoal/80 border border-gold/30 text-cream hover:bg-charcoal shadow-lg'
+                      : 'bg-charcoal/50 text-creamMuted/30 cursor-not-allowed'}
+                  `}
+                >
+                  JOIN ROOM [{roomId.toUpperCase()}]
+                </motion.button>
+              )}
               <motion.button
                 onClick={() => setShowInput(false)}
                 whileHover={{ scale: 1.02 }}
-                className="px-6 py-3 rounded-lg text-sm font-mono tracking-wider text-creamMuted/60 hover:text-cream border border-white/10 hover:border-white/20 transition-all cursor-pointer"
+                className="w-full py-2.5 rounded-lg text-sm font-mono tracking-wider text-creamMuted/40 hover:text-cream border border-white/5 hover:border-white/15 transition-all cursor-pointer mt-1"
               >
-                BACK
+                CANCEL
               </motion.button>
             </div>
           </motion.div>

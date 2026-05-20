@@ -7,7 +7,7 @@ const navLinks = [
   { label: 'PLAY', href: '#hero' },
   { label: 'RULES', href: '#how-to-play' },
   { label: 'MODES', href: '#game-modes' },
-  { label: 'RULES', href: '#join-cta' },
+  { label: 'JOIN', href: '#join-cta' },
 ];
 
 export default function Navbar() {

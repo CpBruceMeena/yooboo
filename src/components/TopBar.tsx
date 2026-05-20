@@ -9,32 +9,35 @@ interface TopBarProps {
 
 export default function TopBar({ roomId, currentPlayer, direction, stackValue }: TopBarProps) {
   return (
-    <div className="h-14 bg-gradient-to-r from-bgSecondary to-bgPrimary border-b border-textMuted/10 flex items-center justify-between px-6 shrink-0">
+    <div className="h-14 bg-gradient-to-r from-bgSecondary/90 to-bgPrimary border-b border-gold/10 flex items-center justify-between px-6 shrink-0">
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">🎴</span>
-          <h1 className="text-sm font-bold text-textPrimary tracking-wide">Uno-No-Mercy</h1>
+        <div className="flex items-center gap-2.5">
+          <span className="text-lg">🃏</span>
+          <div>
+            <h1 className="text-sm font-serif font-bold text-cream tracking-tight leading-tight">UNO</h1>
+            <span className="text-[9px] font-serif italic text-gold/60 tracking-wider block leading-tight">NO MERCY</span>
+          </div>
         </div>
         {roomId && (
-          <span className="px-2.5 py-1 rounded-md bg-bgTertiary/60 border border-textMuted/10 text-xs text-textMuted font-mono">
+          <span className="px-2.5 py-1 rounded-md bg-[#130E0A]/80 border border-gold/15 text-xs text-goldLight font-mono tracking-wider">
             {roomId}
           </span>
         )}
       </div>
-      <div className="flex items-center gap-5 text-xs text-textMuted">
+      <div className="flex items-center gap-5 text-xs text-creamMuted">
         {currentPlayer && (
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-success animate-pulse-glow" />
-            <span>Turn: <span className="text-textPrimary font-semibold">{currentPlayer}</span></span>
+            <span className="w-2 h-2 rounded-full bg-goldGlow shadow-[0_0_6px_rgba(232,184,75,0.6)]" />
+            <span>Turn: <span className="text-cream font-semibold">{currentPlayer}</span></span>
           </div>
         )}
         {direction && (
           <span className="flex items-center gap-1">
-            <span className="text-sm">{direction === 'clockwise' ? '↻' : '↺'}</span>
+            <span className="text-sm text-gold/60">{direction === 'clockwise' ? '↻' : '↺'}</span>
           </span>
         )}
         {stackValue != null && stackValue > 0 && (
-          <span className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-danger/15 border border-danger/30 text-danger font-bold text-xs">
+          <span className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-crimson/15 border border-crimson/30 text-crimson font-bold text-xs">
             <span>⚡</span>
             <span>Stack: {stackValue}</span>
           </span>
