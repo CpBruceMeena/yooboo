@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme inline {
+  /* Arcade/game colors (existing) */
   --color-red: #E44747;
   --color-yellow: #F3C742;
   --color-green: #33B56B;
@@ -18,10 +19,25 @@
   --color-neonCyan: #00F0FF;
   --color-neonOrange: #FF6A00;
 
+  /* Premium casino/homepage colors (new) */
+  --color-gold: #C9952A;
+  --color-goldGlow: #E8B84B;
+  --color-goldMuted: #A67B2E;
+  --color-felt: #1A2E1A;
+  --color-cream: #F2EBD9;
+  --color-creamMuted: #C4B89B;
+  --color-surface: #130E0A;
+  --color-bgWarm: #0A0705;
+  --color-crimson: #C0392B;
+  --color-charcoal: #1A1512;
+
+  /* Font families */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: 'Bebas Neue', var(--font-geist-sans);
   --font-mono-alt: 'Space Mono', var(--font-geist-mono);
+  --font-serif: var(--font-serif), 'Georgia', 'Times New Roman', serif;
+  --font-serif-alt: var(--font-serif-alt), 'Georgia', 'Times New Roman', serif;
 }
 
 body {
@@ -30,6 +46,38 @@ body {
   font-family: var(--font-sans);
   overflow: hidden;
   user-select: none;
+}
+
+/* ========== HOMEPAGE OVERRIDE ========== */
+body.homepage {
+  background: #0A0705;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+body.homepage::before {
+  display: none;
+}
+
+body.homepage::after {
+  opacity: 0.025;
+}
+
+body.homepage::-webkit-scrollbar {
+  width: 6px;
+}
+
+body.homepage::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body.homepage::-webkit-scrollbar-thumb {
+  background: #2A1F18;
+  border-radius: 3px;
+}
+
+body.homepage::-webkit-scrollbar-thumb:hover {
+  background: #3A2F28;
 }
 
 /* ========== ARCADE GLITCH FOUNDATION ========== */
@@ -59,6 +107,64 @@ body::after {
   pointer-events: none;
   z-index: 9996;
 }
+
+/* ========== HOMEPAGE ANIMATIONS ========== */
+
+@keyframes gold-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes card-float {
+  0%, 100% { transform: translateY(0) rotate(var(--rot, 0deg)); }
+  50% { transform: translateY(-8px) rotate(var(--rot, 0deg)); }
+}
+
+@keyframes gold-pulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(201, 149, 42, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(201, 149, 42, 0.4), 0 0 60px rgba(201, 149, 42, 0.1); }
+}
+
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes reveal-scale {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes glow-spotlight {
+  0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+@keyframes float-drift {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(10px, -15px) rotate(2deg); }
+  50% { transform: translate(-5px, -25px) rotate(-1deg); }
+  75% { transform: translate(-15px, -10px) rotate(1deg); }
+}
+
+@keyframes cta-pulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(201, 149, 42, 0.3); }
+  50% { box-shadow: 0 0 35px rgba(201, 149, 42, 0.6), 0 0 70px rgba(201, 149, 42, 0.15); }
+}
+
+.animate-gold-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(201, 149, 42, 0.15), transparent);
+  background-size: 200% 100%;
+  animation: gold-shimmer 2.5s ease-in-out infinite;
+}
+
+.animate-card-float { animation: card-float 4s ease-in-out infinite; }
+.animate-gold-pulse { animation: gold-pulse 2.5s ease-in-out infinite; }
+.animate-reveal-up { animation: reveal-up 0.7s ease-out forwards; opacity: 0; }
+.animate-reveal-scale { animation: reveal-scale 0.7s ease-out forwards; opacity: 0; }
+.animate-glow-spotlight { animation: glow-spotlight 4s ease-in-out infinite; }
+.animate-float-drift { animation: float-drift 12s ease-in-out infinite; }
+.animate-cta-pulse { animation: cta-pulse 2s ease-in-out infinite; }
 
 /* ========== GLITCH ANIMATIONS ========== */
 
@@ -229,6 +335,31 @@ body::after {
   border-radius: inherit;
 }
 
+/* Homepage card gradients */
+.home-card-glow {
+  position: relative;
+}
+
+.home-card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(201, 149, 42, 0.15), transparent, rgba(201, 149, 42, 0.05));
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.home-card-glow:hover::before {
+  opacity: 1;
+}
+
+/* Felt texture for cards */
+.felt-texture {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
 .scrollbar-thin::-webkit-scrollbar {
   width: 4px;
 }
@@ -238,4 +369,9 @@ body::after {
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background: #1E2533;
   border-radius: 2px;
+}
+
+/* Text shadow for gold text */
+.gold-text-shadow {
+  text-shadow: 0 2px 10px rgba(201, 149, 42, 0.3), 0 0 40px rgba(201, 149, 42, 0.1);
 }
