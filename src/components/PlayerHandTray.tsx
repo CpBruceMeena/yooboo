@@ -119,6 +119,54 @@ function FlyingCard({
   );
 }
 
+/* ── Card hover preview popup ── */
+function CardPreview({ card, mouseY }: { card: CardType; mouseY: number }) {
+  // Show above or below based on cursor position
+  const above = mouseY < window.innerHeight * 0.5;
+
+  return (
+    <motion.div
+      className="fixed z-50 pointer-events-none"
+      style={{
+        left: '50%',
+        top: above ? '15%' : 'auto',
+        bottom: above ? 'auto' : '15%',
+        transform: 'translateX(-50%)',
+      }}
+      initial={{ opacity: 0, y: above ? -20 : 20, scale: 0.8 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: above ? -10 : 10, scale: 0.9 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 22, mass: 0.6 }}
+    >
+      {/* Glow backdrop */}
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-b from-gold/10 via-gold/5 to-transparent blur-xl -z-10 scale-125 animate-preview-glow" />
+
+      {/* Card at lg size */}
+      <div className="relative animate-preview-float">
+        <Card
+          type={card.type}
+          color={card.color}
+          value={card.value}
+          state="default"
+          size="lg"
+        />
+      </div>
+
+      {/* Card name label */}
+      <motion.div
+        className="text-center mt-2"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1 }}
+      >
+        <span className="text-[10px] font-mono tracking-wider text-creamMuted/50">
+          {card.type === 'number' ? `NUMBER ${card.value}` : card.type.toUpperCase()}
+        </span>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function PlayerHandTray({
   cards,
   playableCardIds,
@@ -126,6 +174,8 @@ export default function PlayerHandTray({
   onCardClick,
   disabled,
 }: PlayerHandTrayProps) {
+  const [hoveredCard, setHoveredCard] = useState<CardType | null>(null);
+  const [mouseY, setMouseY] = useState(0);
   const [prevCardIds, setPrevCardIds] = useState<Set<string>>(new Set());
   const [newCardIds, setNewCardIds] = useState<Set<string>>(new Set());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -161,6 +211,14 @@ export default function PlayerHandTray({
   const cardSize = 'sm';
 
   return (
+    <>
+      {/* Hover preview */}
+      <AnimatePresence>
+        {hoveredCard && (
+          <CardPreview card={hoveredCard} mouseY={mouseY} />
+        )}
+      </AnimatePresence>
+
     <div className="flex justify-center px-2 pb-1.5 pt-0.5 overflow-x-auto scrollbar-thin">
       <div className="flex flex-col gap-1 min-w-0 max-w-full">
         {colorRows.map((row) => {
@@ -221,6 +279,12 @@ export default function PlayerHandTray({
                           damping: 22,
                           mass: 0.6,
                         }}
+                        onMouseEnter={(e) => {
+                          setHoveredCard(card);
+                          setMouseY(e.clientY);
+                        }}
+                        onMouseLeave={() => setHoveredCard(null)}
+                        onMouseMove={(e) => setMouseY(e.clientY)}
                       >
                         <Card
                           type={card.type}
@@ -240,5 +304,6 @@ export default function PlayerHandTray({
         })}
       </div>
     </div>
+    </>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+import { useEffect, useState, useRef } from 'react';
 
 interface DrawPileProps {
   cardCount: number;
@@ -101,6 +102,26 @@ function CardBackSVG() {
 }
 
 export default function DrawPile({ cardCount, onClick, disabled }: DrawPileProps) {
+  const [isShuffling, setIsShuffling] = useState(false);
+  const [cascadeCount, setCascadeCount] = useState(0);
+  const prevCountRef = useRef(cardCount);
+
+  // Detect reshuffle: when card count increases (discard recycled into draw pile)
+  useEffect(() => {
+    const prev = prevCountRef.current;
+    prevCountRef.current = cardCount;
+
+    if (prev > 0 && cardCount > prev + 3) {
+      // Big increase = reshuffle happened
+      setIsShuffling(true);
+      setCascadeCount((c) => c + 1);
+      const t1 = setTimeout(() => setIsShuffling(false), 600);
+      // Cascade card back animation overlay
+      const t2 = setTimeout(() => setCascadeCount((c) => Math.max(0, c - 1)), 1200);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
+    }
+  }, [cardCount]);
+
   return (
     <motion.div 
       className="relative" 
@@ -108,6 +129,52 @@ export default function DrawPile({ cardCount, onClick, disabled }: DrawPileProps
       whileHover={!disabled ? { scale: 1.05, y: -4 } : undefined}
       whileTap={!disabled ? { scale: 0.95 } : undefined}
     >
+      {/* Shuffle cascade overlay — flying card backs */}
+      
+      {/* Shake the pile on shuffle */}
+      <motion.div
+        className={`${isShuffling ? 'animate-shuffle-shake' : ''}`}
+      >
+      <AnimatePresence>
+        {cascadeCount > 0 && (
+          <div className="absolute inset-0 z-30 pointer-events-none">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <motion.div
+                key={`cascade-${cascadeCount}-${i}`}
+                className="absolute w-20 h-28 rounded-xl bg-gradient-to-br from-[#1A1010] to-[#0D0D12] border-2 border-gold/10"
+                style={{
+                  left: `${-20 + i * 10}px`,
+                  top: `${-10 + i * 5}px`,
+                }}
+                initial={{
+                  opacity: 0,
+                  y: -80 + i * 15,
+                  x: -30 + i * 20,
+                  rotate: -20 + i * 8,
+                  scale: 0.6,
+                }}
+                animate={{
+                  opacity: [0, 0.6, 0],
+                  y: [0, 0],
+                  x: [0, 0],
+                  rotate: [0, 0],
+                  scale: [0.6, 1, 1],
+                }}
+                transition={{
+                  duration: 0.5,
+                  delay: i * 0.08,
+                  ease: 'easeOut',
+                }}
+              >
+                <div className="w-full h-full rounded-xl flex items-center justify-center">
+                  <span className="text-goldGlow/20 font-display text-lg">♠</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </AnimatePresence>
+
       <motion.div 
         className="relative w-20 h-28 rounded-xl cursor-pointer flex items-center justify-center edge-glow-pulse"
         animate={!disabled ? {
@@ -141,6 +208,7 @@ export default function DrawPile({ cardCount, onClick, disabled }: DrawPileProps
             {cardCount}
           </span>
         </motion.div>
+      </motion.div>
       </motion.div>
     </motion.div>
   );
