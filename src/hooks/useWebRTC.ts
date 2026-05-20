@@ -56,6 +56,8 @@ export function useWebRTC(): WebRTCReturn {
   const [unoCall, setUnoCall] = useState<{ playerId: string; playerName: string } | null>(null);
   const pendingJoinRef = useRef<{ roomId: string; playerName: string } | null>(null);
   const joinedRoomRef = useRef<{ roomId: string; playerName: string } | null>(null);
+  const startGameTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gameStartedRef = useRef(false);
 
   useEffect(() => {
     // Connect same-origin — the reverse proxy (port 3000) handles Socket.IO at /api/socketio
@@ -136,6 +138,14 @@ export function useWebRTC(): WebRTCReturn {
     socket.on('state_update', (data: { state: GameState }) => {
       console.log('state_update received: status=', data.state.status, 'players=', data.state.players.map(p=>({id:p.id,name:p.name,hand:p.hand.length}))); 
       setGameState(data.state);
+      // Game started — clear the start_game timeout
+      if (data.state.status === 'in_game') {
+        gameStartedRef.current = true;
+        if (startGameTimeoutRef.current) {
+          clearTimeout(startGameTimeoutRef.current);
+          startGameTimeoutRef.current = null;
+        }
+      }
     });
 
     socket.on('invalid_move', (data: { reason: string }) => {
@@ -177,6 +187,11 @@ export function useWebRTC(): WebRTCReturn {
     });
 
     return () => {
+      if (startGameTimeoutRef.current) {
+        clearTimeout(startGameTimeoutRef.current);
+        startGameTimeoutRef.current = null;
+      }
+      gameStartedRef.current = false;
       socket.removeAllListeners();
       socket.disconnect();
     };
@@ -196,7 +211,22 @@ export function useWebRTC(): WebRTCReturn {
 
   const startGame = useCallback(() => {
     console.log('emit start_game');
+    setError(null); // Clear any previous errors on retry
     socketRef.current?.emit('start_game');
+    gameStartedRef.current = false;
+    // Timeout: if no state_update with status='in_game' arrives within 8s, show error
+    if (startGameTimeoutRef.current) {
+      clearTimeout(startGameTimeoutRef.current);
+    }
+    startGameTimeoutRef.current = setTimeout(() => {
+      if (!gameStartedRef.current) {
+        console.log('start_game timed out — no response from server');
+        setError('Game start timed out. Please try again.');
+        // Auto-clear the error after 5 seconds so the user can retry
+        setTimeout(() => setError(prev => prev === 'Game start timed out. Please try again.' ? null : prev), 5000);
+      }
+      startGameTimeoutRef.current = null;
+    }, 8000);
   }, []);
 
   const playCard = useCallback((cardId: string, chosenColor?: Exclude<Card['color'], 'wild'>) => {

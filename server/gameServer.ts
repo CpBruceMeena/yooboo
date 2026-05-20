@@ -1,4 +1,3 @@
-import { Server as HTTPServer } from 'http';
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import {
   GameState, Player, Card, PlayCardEvent,
@@ -67,12 +66,7 @@ function createInitialState(roomId: string, players: { id: string; name: string 
   };
 }
 
-export function setupGameServer(httpServer: HTTPServer) {
-  const io = new SocketIOServer(httpServer, {
-    cors: { origin: '*', methods: ['GET', 'POST'] },
-    path: '/api/socketio',
-  });
-
+export function setupGameServer(io: SocketIOServer) {
   const clientMap = new Map<string, ClientInfo>();
 
   io.on('connection', (socket: Socket) => {
@@ -171,10 +165,19 @@ export function setupGameServer(httpServer: HTTPServer) {
 
     socket.on('start_game', () => {
       const info = clientMap.get(socket.id);
-      if (!info) return;
+      if (!info) {
+        socket.emit('invalid_move', { reason: 'Session error: not registered. Please rejoin the room.' });
+        return;
+      }
       const room = rooms.get(info.roomId);
-      if (!room) return;
-      if (room.state && room.state.status === 'in_game') return;
+      if (!room) {
+        socket.emit('invalid_move', { reason: 'Room not found. Please create a new room.' });
+        return;
+      }
+      if (room.state && room.state.status === 'in_game') {
+        socket.emit('invalid_move', { reason: 'Game already in progress.' });
+        return;
+      }
 
       const players = Array.from(room.clients.entries()).map(([sid, pid]) => {
         const cinfo = clientMap.get(sid);
@@ -193,6 +196,8 @@ export function setupGameServer(httpServer: HTTPServer) {
         room.state = createInitialState(info.roomId, players);
         console.log('start_game room.clients entries', Array.from(room.clients.entries()));
 
+        // Track which sockets received the state update
+        let sentCount = 0;
         for (const sid of room.clients.keys()) {
           const cInfo = clientMap.get(sid);
           console.log('start_game loop sid', sid, 'cInfo', cInfo);
@@ -210,12 +215,19 @@ export function setupGameServer(httpServer: HTTPServer) {
               };
               console.log('start_game emitting state_update to', sid, 'for player', player.name);
               io.to(sid).emit('state_update', { state: privateState });
+              sentCount++;
             } else {
               console.log('start_game could not find player for cInfo', cInfo);
             }
           } else {
             console.log('start_game missing client info for socket id', sid);
           }
+        }
+
+        // If no sockets received the update, something is wrong — report to the requester
+        if (sentCount === 0) {
+          socket.emit('invalid_move', { reason: 'Failed to start: no connected players found. Try again.' });
+          rooms.delete(info.roomId);
         }
       } catch (err) {
         console.error('Error in start_game handler:', err);
