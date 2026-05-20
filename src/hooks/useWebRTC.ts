@@ -56,28 +56,31 @@ export function useWebRTC(): WebRTCReturn {
   const [unoCall, setUnoCall] = useState<{ playerId: string; playerName: string } | null>(null);
   const pendingJoinRef = useRef<{ roomId: string; playerName: string } | null>(null);
   const joinedRoomRef = useRef<{ roomId: string; playerName: string } | null>(null);
+  const startGameTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gameStartedRef = useRef(false);
 
   useEffect(() => {
-    // Smart connection: localhost → direct to server port (WebSocket works)
-    // External/ngrok → same-origin through Next.js proxy (polling only, WebSocket won't proxy)
-    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
-    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
-
+    // Connect same-origin — the reverse proxy (port 3000) handles Socket.IO at /api/socketio
+    // and proxies everything else to Next.js (port 3001). Works for localhost and ngrok.
     const explicitUrl = process.env.NEXT_PUBLIC_SERVER_URL;
-    const socketUrl = explicitUrl || (isLocal ? `http://${hostname}:3001` : undefined);
 
-    const socket = io(socketUrl, {
-      path: '/socket.io',
-      transports: isLocal ? ['websocket', 'polling'] : ['polling'],
-      timeout: 10000,
-      reconnectionAttempts: 10,
+    const socket = io(explicitUrl || undefined, {
+      path: '/api/socketio',
+      // Use polling-first, then upgrade to WebSocket once connected.
+      // http-proxy on the combined server handles WebSocket upgrades for Socket.IO paths.
+      transports: ['polling', 'websocket'],
+      timeout: 20000,
+      reconnectionAttempts: 15,
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
       reconnection: true,
+      // Force new connection to avoid stale sessions
+      forceNew: true,
     });
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      console.log('socket connected', socket.id, 'to', socketUrl);
+      console.log('socket connected', socket.id);
       setConnected(true);
       setError(null);
       // Priority 1: pending join (first-time connect, room not yet joined)
@@ -135,6 +138,14 @@ export function useWebRTC(): WebRTCReturn {
     socket.on('state_update', (data: { state: GameState }) => {
       console.log('state_update received: status=', data.state.status, 'players=', data.state.players.map(p=>({id:p.id,name:p.name,hand:p.hand.length}))); 
       setGameState(data.state);
+      // Game started — clear the start_game timeout
+      if (data.state.status === 'in_game') {
+        gameStartedRef.current = true;
+        if (startGameTimeoutRef.current) {
+          clearTimeout(startGameTimeoutRef.current);
+          startGameTimeoutRef.current = null;
+        }
+      }
     });
 
     socket.on('invalid_move', (data: { reason: string }) => {
@@ -176,6 +187,11 @@ export function useWebRTC(): WebRTCReturn {
     });
 
     return () => {
+      if (startGameTimeoutRef.current) {
+        clearTimeout(startGameTimeoutRef.current);
+        startGameTimeoutRef.current = null;
+      }
+      gameStartedRef.current = false;
       socket.removeAllListeners();
       socket.disconnect();
     };
@@ -195,7 +211,22 @@ export function useWebRTC(): WebRTCReturn {
 
   const startGame = useCallback(() => {
     console.log('emit start_game');
+    setError(null); // Clear any previous errors on retry
     socketRef.current?.emit('start_game');
+    gameStartedRef.current = false;
+    // Timeout: if no state_update with status='in_game' arrives within 8s, show error
+    if (startGameTimeoutRef.current) {
+      clearTimeout(startGameTimeoutRef.current);
+    }
+    startGameTimeoutRef.current = setTimeout(() => {
+      if (!gameStartedRef.current) {
+        console.log('start_game timed out — no response from server');
+        setError('Game start timed out. Please try again.');
+        // Auto-clear the error after 5 seconds so the user can retry
+        setTimeout(() => setError(prev => prev === 'Game start timed out. Please try again.' ? null : prev), 5000);
+      }
+      startGameTimeoutRef.current = null;
+    }, 8000);
   }, []);
 
   const playCard = useCallback((cardId: string, chosenColor?: Exclude<Card['color'], 'wild'>) => {

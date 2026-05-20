@@ -13,21 +13,37 @@ npm install
 cd server && npm install && cd ..
 ```
 
-### 2. Start the game server (Terminal 1)
+### 2. Start the servers
+
+The app runs as 3 processes. The easiest way is using the provided script:
 
 ```bash
+./run.sh
+```
+
+This starts all 3 processes in tmux panes (or background if tmux unavailable):
+| Process | Port | Description |
+|---|---|---|
+| Reverse Proxy | 3000 | Entry point. Proxies Socket.IO to game server, HTTP to Next.js |
+| Next.js | 3001 | Frontend (internal, not directly accessed) |
+| Game Server | 3002 | Socket.IO game engine at `/api/socketio` |
+
+Open `http://localhost:3000` to play.
+
+### 3. Manual start (3 terminals)
+
+```bash
+# Terminal 1: Game server (Socket.IO)
+cd server && npx tsx gameEntry.ts
+
+# Terminal 2: Next.js frontend
+npm run dev
+
+# Terminal 3: Reverse proxy
 cd server && npx tsx index.ts
 ```
 
-Runs on `http://localhost:3001`.
-
-### 3. Start the Next.js client (Terminal 2)
-
-```bash
-npm run dev
-```
-
-Opens at `http://localhost:3000`.
+Open `http://localhost:3000` in two+ browser windows to play.
 
 ### 4. Play
 
@@ -35,65 +51,39 @@ Opens at `http://localhost:3000`.
 2. Enter a name and the same room code (or create from one window and join with the code in the other)
 3. Click **Start Game** once everyone has joined
 
-## Run with script
-
-To start the app with one command:
-
-```bash
-./run.sh
-```
-
-The script prefers `tmux` and will launch the server and client in separate tmux panes if available.
-If `tmux` is not installed, it will start both processes in the background and write logs to `./.logs/server.log` and `./.logs/client.log`.
-
-If the browser environment has trouble connecting to `localhost`, use the IPv4 server URL instead:
-
-```bash
-export NEXT_PUBLIC_SERVER_URL=http://127.0.0.1:3001
-./run.sh
-```
-
-If the script is not executable, make it executable first:
-
-```bash
-chmod +x run.sh
-```
-
 ### Stop the servers
 
-If using `tmux`:
-
 ```bash
-tmux kill-session -t uno-nomercy
+./run.sh stop
 ```
 
-If the script started background processes (no tmux), stop them by killing the logs' processes:
+Or manually:
 
 ```bash
-pkill -f "npx tsx index.ts"
+pkill -f "tsx"
 pkill -f "next dev"
-```
-
-Or inspect the log PIDs with:
-
-```bash
-ps aux | grep -E "npx tsx index.ts|next dev"
 ```
 
 ## Architecture
 
 ```
-Client (Next.js + Tailwind v4) --Socket.IO--> Server (Node.js + tsx)
-                                                │
-                                          Game Engine (pure TS)
-                                          - Authoritative validation
-                                          - Card effects
-                                          - Stack/smiley resolution
-                                          - Elimination/win checks
+Client (Next.js + Tailwind v4) -------- HTTPS -------> Reverse Proxy (:3000)
+                                                            │
+                                            ┌───────────────┼───────────────┐
+                                            ▼                               ▼
+                                     Game Server (:3002)              Next.js (:3001)
+                                     Socket.IO /api/socketio          UI rendering
+                                            │
+                                      Game Engine (pure TS)
+                                      - Authoritative validation
+                                      - Card effects
+                                      - Stack/smiley resolution
+                                      - Elimination/win checks
 ```
 
-- **Server** owns all game state and validates every move
-- **Client** renders UI and sends actions via Socket.IO
+- **Reverse Proxy** (port 3000, `http-proxy`): Entry point. Proxies Socket.IO paths to the game server and everything else to Next.js. Also handles WebSocket upgrades.
+- **Game Server** (port 3002, Socket.IO): Owns all game state and validates every move.
+- **Next.js** (port 3001, internal): Renders the frontend UI.
 - **No database needed** — rooms are in-memory (ephemeral)
 
 ## Card Types

@@ -69,26 +69,25 @@ stop_servers() {
 
 # ─── Status ───────────────────────────────────────────────────────
 status_servers() {
-  local server_pid
-  local client_pid
   local any=0
+  local combined_pid client_pid
 
-  server_pid=$(pgrep -f "tsx index.ts" | head -1 || true)
+  combined_pid=$(pgrep -f "tsx index.ts" | head -1 || true)
   client_pid=$(pgrep -f "next dev" | head -1 || true)
 
   echo -e "${CYAN}Server Status:${NC}"
-  if [ -n "$server_pid" ]; then
-    echo -e "  ${GREEN}●${NC} Game Server (port 3001) — PID $server_pid"
+  if [ -n "$combined_pid" ]; then
+    echo -e "  ${GREEN}●${NC} Combined Server (port 3000, Socket.IO + Next.js proxy) — PID $combined_pid"
     any=1
   else
-    echo -e "  ${RED}○${NC} Game Server (port 3001) — not running"
+    echo -e "  ${RED}○${NC} Combined Server (port 3000) — not running"
   fi
 
   if [ -n "$client_pid" ]; then
-    echo -e "  ${GREEN}●${NC} Next.js Client (port 3000) — PID $client_pid"
+    echo -e "  ${GREEN}●${NC} Next.js (port 3001) — PID $client_pid"
     any=1
   else
-    echo -e "  ${RED}○${NC} Next.js Client (port 3000) — not running"
+    echo -e "  ${RED}○${NC} Next.js (port 3001) — not running"
   fi
 
   if tmux has-session -t uno-nomercy 2>/dev/null; then
@@ -137,16 +136,16 @@ start_tmux() {
   sleep 1
 
   tmux new-session -d -s uno-nomercy -n "uno-nomercy"
-  tmux send-keys -t uno-nomercy "cd $SERVER_DIR && npx tsx index.ts" Enter
+  tmux send-keys -t uno-nomercy "cd $ROOT_DIR && npx next dev -p 3001" Enter
 
   tmux split-window -h -t uno-nomercy
-  tmux send-keys -t uno-nomercy "cd $ROOT_DIR && npm run dev" Enter
+  tmux send-keys -t uno-nomercy "cd $SERVER_DIR && npx tsx index.ts" Enter
 
-  tmux select-pane -t uno-nomercy:0.0
+  tmux select-pane -t uno-nomercy:0.1
 
   echo ""
-  echo -e "  ${GREEN}●${NC} Game Server → port ${CYAN}3001${NC}"
-  echo -e "  ${GREEN}●${NC} Next.js App → port ${CYAN}3000${NC}"
+  echo -e "  ${GREEN}●${NC} Combined Server → port ${CYAN}3000${NC} (Socket.IO + proxy to Next.js)"
+  echo -e "  ${GREEN}●${NC} Next.js → port ${CYAN}3001${NC} (internal)"
   echo ""
   echo -e "  ${YELLOW}Attaching to session...${NC}"
   echo -e "  ${YELLOW}Press Ctrl+C to stop servers${NC}"
@@ -164,19 +163,19 @@ start_background() {
   mkdir -p "$LOG_DIR"
   > "$PID_FILE"
 
-  # Start game server
-  cd "$SERVER_DIR"
-  nohup npx tsx index.ts > "$LOG_DIR/server.log" 2>&1 &
-  local server_pid=$!
-  echo "$server_pid" >> "$PID_FILE"
-  echo -e "  ${GREEN}●${NC} Game Server (PID $server_pid) → port ${CYAN}3001${NC}"
-
-  # Start Next.js client
+  # Start Next.js client on port 3001 (proxied through combined server)
   cd "$ROOT_DIR"
-  nohup npm run dev > "$LOG_DIR/client.log" 2>&1 &
+  nohup npx next dev -p 3001 > "$LOG_DIR/client.log" 2>&1 &
   local client_pid=$!
   echo "$client_pid" >> "$PID_FILE"
-  echo -e "  ${GREEN}●${NC} Next.js App (PID $client_pid) → port ${CYAN}3000${NC}"
+  echo -e "  ${GREEN}●${NC} Next.js (PID $client_pid) → port ${CYAN}3001${NC} (internal)"
+
+  # Start combined server on port 3000 (proxies to game:3002 and next:3001)
+  cd "$SERVER_DIR"
+  nohup npx tsx index.ts > "$LOG_DIR/server.log" 2>&1 &
+  local combined_pid=$!
+  echo "$combined_pid" >> "$PID_FILE"
+  echo -e "  ${GREEN}●${NC} Combined Server (PID $combined_pid) → port ${CYAN}3000${NC} (Socket.IO + proxy to Next.js)"
 
   cd "$ROOT_DIR"
 
@@ -189,10 +188,10 @@ start_background() {
   echo -e "    ./run.sh logs    — See live output"
   echo -e "    ./run.sh status  — Check if running"
   echo ""
-  echo -e "  ${YELLOW}Press Ctrl+C to stop both servers${NC}"
+  echo -e "  ${YELLOW}Press Ctrl+C to stop all servers${NC}"
   echo ""
 
-  wait $server_pid $client_pid 2>/dev/null
+  wait $combined_pid $client_pid 2>/dev/null
   echo -e "${YELLOW}A server process exited. Stopping...${NC}"
   stop_servers
 }
@@ -211,7 +210,7 @@ main() {
       echo ""
 
       # Free ports
-      echo "Checking and freeing ports 3000 and 3001..."
+      echo "Checking and freeing ports 3000, 3001..."
       kill_port 3001
       kill_port 3000
 
