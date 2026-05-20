@@ -214,7 +214,7 @@ function GameContent() {
     handleCardClick, handleDraw, handleSkipTurn, handleSayUno,
     handleColorSelect, handleDiscardSelect,
     handleEmote, handleLeave, clearToast, cancelColor,
-    isMyTurn, isLoading,
+    isMyTurn,
     smileyReveal, clearSmileyReveal,
     discardHandCards, pendingDiscardColor,
     unoCall, clearUnoCall,
@@ -222,7 +222,6 @@ function GameContent() {
 
   const { play: playSound } = useSound();
 
-  const [hasJoined, setHasJoined] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
   const lastTurnRef = useRef<number>(-1);
   const hasRequestedJoin = useRef(false);
@@ -243,7 +242,6 @@ function GameContent() {
 
   useEffect(() => {
     if (gameState && gameState.status === 'in_game') {
-      setHasJoined(true);
       if (gameState.currentPlayerIndex !== lastTurnRef.current) {
         setHasDrawn(false);
         lastTurnRef.current = gameState.currentPlayerIndex;
@@ -353,7 +351,7 @@ function GameContent() {
     );
   }
 
-  if (!hasJoined || isLoading) {
+  if (!gameState || gameState.status === 'lobby') {
     return (
       <div className="flex-1 flex items-center justify-center bg-bgPrimary px-4">
         <LobbyRoom
@@ -364,20 +362,6 @@ function GameContent() {
           onStart={startGame}
           onLeave={() => { handleLeave(); router.push('/'); }}
         />
-      </div>
-    );
-  }
-
-  if (!gameState) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-bgPrimary">
-        <motion.div
-          animate={{ opacity: [1, 0.3, 1] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-          className="text-creamMuted font-mono text-sm tracking-wider"
-        >
-          LOADING...
-        </motion.div>
       </div>
     );
   }
