@@ -23,9 +23,9 @@ export default function Toast({ message, type = 'info', duration = 3000, onDismi
   if (!visible) return null;
 
   const typeStyles: Record<string, string> = {
-    info: 'bg-blue/20 border-blue text-blue',
-    success: 'bg-green/20 border-green text-green',
-    error: 'bg-danger/20 border-danger text-danger',
+    info: 'bg-gold/15 border-gold/40 text-goldGlow',
+    success: 'bg-goldGlow/15 border-goldGlow/40 text-goldGlow',
+    error: 'bg-crimson/15 border-crimson/40 text-crimson',
   };
 
   return (

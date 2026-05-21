@@ -10,9 +10,9 @@ interface ButtonProps {
 }
 
 const variantStyles: Record<string, string> = {
-  primary: 'bg-blue hover:bg-blue/80 text-white',
-  secondary: 'bg-bgTertiary hover:bg-bgTertiary/80 text-textPrimary border border-textMuted/20',
-  danger: 'bg-danger hover:bg-danger/80 text-white',
+  primary: 'bg-gradient-to-r from-gold to-goldGlow text-bgWarm font-semibold shadow-lg shadow-gold/20 hover:shadow-gold/35',
+  secondary: 'bg-[#130E0A]/80 hover:bg-[#130E0A] text-cream border border-gold/20 hover:border-gold/40',
+  danger: 'bg-gradient-to-r from-crimson to-danger text-white font-semibold shadow-lg shadow-crimson/20',
 };
 
 export default function Button({ variant = 'primary', children, onClick, disabled, className = '' }: ButtonProps) {

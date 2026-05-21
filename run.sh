@@ -48,15 +48,20 @@ stop_servers() {
   if [ -f "$PID_FILE" ]; then
     while IFS= read -r pid; do
       if kill -0 "$pid" 2>/dev/null; then
-        kill "$pid" 2>/dev/null && echo -e "  ${RED}✕${NC} killed PID $pid"
+        kill -9 "$pid" 2>/dev/null && echo -e "  ${RED}✕${NC} killed PID $pid (SIGKILL)" || true
       fi
     done < "$PID_FILE"
     rm -f "$PID_FILE"
   fi
 
-  # Kill by process name (catches any orphans)
-  pkill -f "tsx index.ts" 2>/dev/null || true
-  pkill -f "next dev" 2>/dev/null || true
+  # Kill by process name (catches any orphans) — SIGKILL for thoroughness
+  pkill -9 -f "tsx index.ts" 2>/dev/null || true
+  pkill -9 -f "next dev" 2>/dev/null || true
+  pkill -9 -f "node.*http-proxy" 2>/dev/null || true
+
+  # Kill any lingering process on ports 3000 and 3001
+  kill_port 3000
+  kill_port 3001
 
   # Kill tmux session
   if tmux has-session -t uno-nomercy 2>/dev/null; then
@@ -64,7 +69,11 @@ stop_servers() {
     echo -e "  ${RED}✕${NC} killed tmux session 'uno-nomercy'"
   fi
 
-  echo -e "${GREEN}✓ Servers stopped.${NC}"
+  # Clean up stale artifacts
+  rm -rf "$LOG_DIR"
+  rm -f "$PID_FILE"
+
+  echo -e "${GREEN}✓ Servers stopped and state cleaned.${NC}"
 }
 
 # ─── Status ───────────────────────────────────────────────────────

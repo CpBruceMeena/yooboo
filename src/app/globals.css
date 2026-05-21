@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme inline {
+  /* Arcade/game colors (existing) */
   --color-red: #E44747;
   --color-yellow: #F3C742;
   --color-green: #33B56B;
@@ -18,10 +19,25 @@
   --color-neonCyan: #00F0FF;
   --color-neonOrange: #FF6A00;
 
+  /* Premium casino/homepage colors (new) */
+  --color-gold: #C9952A;
+  --color-goldGlow: #E8B84B;
+  --color-goldMuted: #A67B2E;
+  --color-felt: #1A2E1A;
+  --color-cream: #F2EBD9;
+  --color-creamMuted: #C4B89B;
+  --color-surface: #130E0A;
+  --color-bgWarm: #0A0705;
+  --color-crimson: #C0392B;
+  --color-charcoal: #1A1512;
+
+  /* Font families */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: 'Bebas Neue', var(--font-geist-sans);
   --font-mono-alt: 'Space Mono', var(--font-geist-mono);
+  --font-serif: var(--font-serif), 'Georgia', 'Times New Roman', serif;
+  --font-serif-alt: var(--font-serif-alt), 'Georgia', 'Times New Roman', serif;
 }
 
 body {
@@ -30,6 +46,71 @@ body {
   font-family: var(--font-sans);
   overflow: hidden;
   user-select: none;
+}
+
+/* ========== HOMEPAGE OVERRIDE ========== */
+body.homepage {
+  background: #0A0705;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+body.homepage::before {
+  display: none;
+}
+
+body.homepage::after {
+  opacity: 0.025;
+}
+
+body.homepage::-webkit-scrollbar {
+  width: 6px;
+}
+
+body.homepage::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body.homepage::-webkit-scrollbar-thumb {
+  background: #2A1F18;
+  border-radius: 3px;
+}
+
+body.homepage::-webkit-scrollbar-thumb:hover {
+  background: #3A2F28;
+}
+
+/* ========== GAME CASINO THEME ========== */
+.game-casino-theme {
+  --color-bgPrimary: #0A0705;
+  --color-bgSecondary: #1A1512;
+  --color-bgTertiary: #130E0A;
+  --color-textPrimary: #F2EBD9;
+  --color-textMuted: #C4B89B;
+  --color-accent: #C9952A;
+  --color-danger: #C0392B;
+  --color-success: #E8B84B;
+}
+
+.game-casino-theme::before {
+  display: none;
+}
+
+.game-casino-theme::after {
+  opacity: 0.02;
+}
+
+.game-casino-theme::-webkit-scrollbar {
+  width: 4px;
+}
+
+.game-casino-theme::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.game-casino-theme::-webkit-scrollbar-thumb {
+  background: #2A1F18;
+  border-radius: 2px;
 }
 
 /* ========== ARCADE GLITCH FOUNDATION ========== */
@@ -59,6 +140,64 @@ body::after {
   pointer-events: none;
   z-index: 9996;
 }
+
+/* ========== HOMEPAGE ANIMATIONS ========== */
+
+@keyframes gold-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes card-float {
+  0%, 100% { transform: translateY(0) rotate(var(--rot, 0deg)); }
+  50% { transform: translateY(-8px) rotate(var(--rot, 0deg)); }
+}
+
+@keyframes gold-pulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(201, 149, 42, 0.2); }
+  50% { box-shadow: 0 0 30px rgba(201, 149, 42, 0.4), 0 0 60px rgba(201, 149, 42, 0.1); }
+}
+
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes reveal-scale {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes glow-spotlight {
+  0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+@keyframes float-drift {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(10px, -15px) rotate(2deg); }
+  50% { transform: translate(-5px, -25px) rotate(-1deg); }
+  75% { transform: translate(-15px, -10px) rotate(1deg); }
+}
+
+@keyframes cta-pulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(201, 149, 42, 0.3); }
+  50% { box-shadow: 0 0 35px rgba(201, 149, 42, 0.6), 0 0 70px rgba(201, 149, 42, 0.15); }
+}
+
+.animate-gold-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(201, 149, 42, 0.15), transparent);
+  background-size: 200% 100%;
+  animation: gold-shimmer 2.5s ease-in-out infinite;
+}
+
+.animate-card-float { animation: card-float 4s ease-in-out infinite; }
+.animate-gold-pulse { animation: gold-pulse 2.5s ease-in-out infinite; }
+.animate-reveal-up { animation: reveal-up 0.7s ease-out forwards; opacity: 0; }
+.animate-reveal-scale { animation: reveal-scale 0.7s ease-out forwards; opacity: 0; }
+.animate-glow-spotlight { animation: glow-spotlight 4s ease-in-out infinite; }
+.animate-float-drift { animation: float-drift 12s ease-in-out infinite; }
+.animate-cta-pulse { animation: cta-pulse 2s ease-in-out infinite; }
 
 /* ========== GLITCH ANIMATIONS ========== */
 
@@ -229,6 +368,31 @@ body::after {
   border-radius: inherit;
 }
 
+/* Homepage card gradients */
+.home-card-glow {
+  position: relative;
+}
+
+.home-card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(201, 149, 42, 0.15), transparent, rgba(201, 149, 42, 0.05));
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.home-card-glow:hover::before {
+  opacity: 1;
+}
+
+/* Felt texture for cards */
+.felt-texture {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
 .scrollbar-thin::-webkit-scrollbar {
   width: 4px;
 }
@@ -238,4 +402,360 @@ body::after {
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background: #1E2533;
   border-radius: 2px;
+}
+
+/* Text shadow for gold text */
+.gold-text-shadow {
+  text-shadow: 0 2px 10px rgba(201, 149, 42, 0.3), 0 0 40px rgba(201, 149, 42, 0.1);
+}
+
+/* ========== CARD PREMIUM EFFECTS ========== */
+
+/* Chrome/metallic text effect */
+.text-chrome {
+  background: linear-gradient(180deg, #FFFFFF 0%, #E0DCC8 35%, #B8B09E 50%, #E0DCC8 65%, #FFFFFF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+/* Chroma rainbow foil effect for wild cards */
+@keyframes chroma-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.chroma-foil {
+  background: linear-gradient(135deg,
+    #FF003C, #FF6B00, #FFD60A, #00FF88, #00D4FF, #7A4DFF, #FF003C
+  );
+  background-size: 400% 400%;
+  animation: chroma-shift 4s ease-in-out infinite;
+}
+
+.chroma-foil-subtle {
+  background: linear-gradient(135deg,
+    rgba(255,0,60,0.3), rgba(255,107,0,0.2), rgba(255,214,10,0.3),
+    rgba(0,255,136,0.2), rgba(0,212,255,0.3), rgba(122,77,255,0.2),
+    rgba(255,0,60,0.3)
+  );
+  background-size: 400% 400%;
+  animation: chroma-shift 5s ease-in-out infinite;
+}
+
+/* Neon underglow for action/special cards */
+.neon-underglow-red {
+  box-shadow:
+    0 0 15px rgba(255, 0, 60, 0.25),
+    0 0 40px rgba(255, 0, 60, 0.1),
+    inset 0 0 20px rgba(255, 0, 60, 0.05);
+}
+.neon-underglow-yellow {
+  box-shadow:
+    0 0 15px rgba(255, 214, 10, 0.25),
+    0 0 40px rgba(255, 214, 10, 0.1),
+    inset 0 0 20px rgba(255, 214, 10, 0.05);
+}
+.neon-underglow-green {
+  box-shadow:
+    0 0 15px rgba(0, 255, 136, 0.25),
+    0 0 40px rgba(0, 255, 136, 0.1),
+    inset 0 0 20px rgba(0, 255, 136, 0.05);
+}
+.neon-underglow-blue {
+  box-shadow:
+    0 0 15px rgba(0, 212, 255, 0.25),
+    0 0 40px rgba(0, 212, 255, 0.1),
+    inset 0 0 20px rgba(0, 212, 255, 0.05);
+}
+
+/* Foil edge highlight */
+.foil-edge {
+  position: relative;
+}
+.foil-edge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg,
+    rgba(255,255,255,0.25) 0%,
+    rgba(255,255,255,0.02) 40%,
+    rgba(255,255,255,0.08) 60%,
+    rgba(255,255,255,0.02) 80%,
+    rgba(255,255,255,0.15) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Scratch/ink bleed overlay */
+.scratch-overlay {
+  position: relative;
+  overflow: hidden;
+}
+.scratch-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    /* Subtle scratches */
+    linear-gradient(85deg, transparent 48%, rgba(255,255,255,0.03) 49%, transparent 50%) 0 0 / 100% 100% no-repeat,
+    linear-gradient(-70deg, transparent 58%, rgba(255,255,255,0.02) 59%, transparent 60%) 0 0 / 100% 100% no-repeat,
+    /* Ink bleed edges */
+    linear-gradient(0deg, transparent 95%, rgba(0,0,0,0.15) 98%) 0 0 / 100% 100% no-repeat;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Brushed metal effect for numbers */
+.metal-number {
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.9) 0%,
+    rgba(200,200,200,0.7) 30%,
+    rgba(255,255,255,0.95) 50%,
+    rgba(180,180,180,0.6) 70%,
+    rgba(255,255,255,0.85) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4)) drop-shadow(0 0 8px rgba(255,255,255,0.08));
+}
+
+/* Gold embossed text for NoMercy cards */
+.text-gold-emboss {
+  background: linear-gradient(180deg, #E8B84B 0%, #C9952A 40%, #A67B2E 60%, #E8B84B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 1px 0 rgba(255,215,0,0.3)) drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+/* Legendary card glow for NoMercy specials */
+@keyframes legendary-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 10px rgba(201,149,42,0.4),
+      0 0 25px rgba(201,149,42,0.2),
+      0 0 50px rgba(201,149,42,0.08),
+      inset 0 0 20px rgba(201,149,42,0.05);
+    border-color: rgba(201,149,42,0.5);
+  }
+  50% {
+    box-shadow:
+      0 0 15px rgba(201,149,42,0.6),
+      0 0 35px rgba(201,149,42,0.3),
+      0 0 70px rgba(201,149,42,0.12),
+      inset 0 0 25px rgba(201,149,42,0.08);
+    border-color: rgba(201,149,42,0.7);
+  }
+}
+
+.legendary-card {
+  animation: legendary-pulse 2.5s ease-in-out infinite;
+}
+
+
+
+/* Card back edge glow animation */
+@keyframes edge-glow-pulse {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 8px rgba(255, 0, 60, 0.15),
+      0 0 6px rgba(0, 212, 255, 0.08);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 12px rgba(255, 0, 60, 0.25),
+      0 0 10px rgba(0, 212, 255, 0.15);
+  }
+}
+
+.edge-glow-pulse {
+  animation: edge-glow-pulse 3s ease-in-out infinite;
+}
+
+/* Card pip styling */
+.card-pip {
+  font-family: var(--font-display);
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* Gold playable glow for Casino Noir cards */
+@keyframes playable-glow {
+  0%, 100% {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.18), 0 0 20px rgba(232,184,75,0.12);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 35px rgba(232,184,75,0.25);
+  }
+}
+
+.animate-playable-glow {
+  animation: playable-glow 2s ease-in-out infinite;
+}
+
+/* ========== SMILEY REVEAL CINEMATIC EFFECTS ========== */
+
+/* 3D card flip perspective */
+.perspective-800 {
+  perspective: 800px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Particle burst */
+@keyframes particle-burst {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx, 80px), var(--ty, -80px)) scale(0);
+    opacity: 0;
+  }
+}
+
+.animate-particle {
+  animation: particle-burst 1.2s ease-out forwards;
+}
+
+/* Cinematic scanline overlay */
+@keyframes reveal-scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.animate-reveal-scanline {
+  animation: reveal-scanline 1.5s ease-in-out forwards;
+}
+
+/* Smiley/skull face reveal */
+@keyframes face-reveal {
+  0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+  60% { transform: scale(1.3) rotate(10deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.animate-face-reveal {
+  animation: face-reveal 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Cinematic vignette pulse */
+@keyframes vignette-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+.animate-vignette-pulse {
+  animation: vignette-pulse 2s ease-in-out infinite;
+}
+
+/* Card glow flare on reveal */
+@keyframes flare-burst {
+  0% { transform: scale(0.5); opacity: 1; }
+  50% { transform: scale(2); opacity: 0.5; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+.animate-flare-burst {
+  animation: flare-burst 0.6s ease-out forwards;
+}
+
+/* ========== DISCARD PILE BURST EFFECTS ========== */
+
+/* Dust puff on land */
+@keyframes dust-puff {
+  0% { transform: scale(0.5); opacity: 0.5; }
+  50% { transform: scale(2); opacity: 0.2; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+.animate-dust-puff {
+  animation: dust-puff 0.4s ease-out forwards;
+  pointer-events: none;
+}
+
+/* ========== DRAW PILE SHUFFLE ANIMATION ========== */
+
+/* Shuffle vibration */
+@keyframes shuffle-shake {
+  0% { transform: translate(0, 0) rotate(0deg); }
+  10% { transform: translate(-3px, 1px) rotate(-1deg); }
+  20% { transform: translate(2px, -1px) rotate(1deg); }
+  30% { transform: translate(-2px, 2px) rotate(-0.5deg); }
+  40% { transform: translate(3px, -2px) rotate(0.5deg); }
+  50% { transform: translate(-1px, 0) rotate(0deg); }
+  60% { transform: translate(2px, 1px) rotate(-0.5deg); }
+  70% { transform: translate(-3px, -1px) rotate(0.5deg); }
+  80% { transform: translate(1px, 2px) rotate(0deg); }
+  90% { transform: translate(-2px, -1px) rotate(-0.5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+.animate-shuffle-shake {
+  animation: shuffle-shake 0.5s ease-in-out;
+}
+
+/* ========== VICTORY FIREWORKS ========== */
+
+@keyframes win-text-glow {
+  0%, 100% {
+    text-shadow:
+      0 0 10px rgba(232,184,75,0.4),
+      0 0 30px rgba(232,184,75,0.2),
+      0 0 60px rgba(232,184,75,0.08);
+  }
+  50% {
+    text-shadow:
+      0 0 15px rgba(232,184,75,0.6),
+      0 0 40px rgba(232,184,75,0.3),
+      0 0 80px rgba(232,184,75,0.12),
+      0 0 120px rgba(232,184,75,0.05);
+  }
+}
+
+@keyframes trophy-bounce {
+  0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+  40% { transform: scale(1.3) rotate(8deg); opacity: 1; }
+  60% { transform: scale(0.9) rotate(-3deg); opacity: 1; }
+  80% { transform: scale(1.05) rotate(2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.animate-win-text-glow {
+  animation: win-text-glow 2s ease-in-out infinite;
+}
+
+.animate-trophy-bounce {
+  animation: trophy-bounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes defeat-skull {
+  0% { transform: scale(0) rotate(180deg); opacity: 0; filter: grayscale(1); }
+  50% { transform: scale(1.2) rotate(-10deg); opacity: 0.6; filter: grayscale(0.5); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; filter: grayscale(0); }
+}
+
+.animate-defeat-skull {
+  animation: defeat-skull 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }

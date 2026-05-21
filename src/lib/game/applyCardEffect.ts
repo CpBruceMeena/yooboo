@@ -1,5 +1,4 @@
 import { Card, GameState } from './types';
-import { nextTurn } from './nextTurn';
 
 export function applyCardEffect(
   state: GameState,
@@ -21,13 +20,9 @@ export function applyCardEffect(
         state.activeColor = card.color;
         effects.push('color_change');
       }
-      if (state.players.filter((p) => !p.isEliminated).length === 2) {
-        effects.push('skip');
-        nextTurn(state);
-      } else {
-        state.direction = (state.direction === 1 ? -1 : 1) as 1 | -1;
-        effects.push('reverse');
-      }
+      state.direction = (state.direction === 1 ? -1 : 1) as 1 | -1;
+      effects.push('reverse');
+      effects.push('skip'); // Server handles turn advancement via 'skip' effect
       break;
     }
 

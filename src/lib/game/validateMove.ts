@@ -7,8 +7,6 @@ export function canPlayCard(
   pendingDraw: number,
   pendingType: CardType | null,
 ): boolean {
-  if (card.type === 'smiley') return true;
-
   const isWild = card.color === 'wild';
   const matchesColor = activeColor !== null && card.color === activeColor;
 
@@ -23,12 +21,14 @@ export function canPlayCard(
     matchesType = discardTop.type === card.type;
   }
 
+  // DURING A STACK: only matching stack type cards can be played
   if (pendingDraw > 0 && pendingType) {
     if (!STACKABLE.includes(card.type)) return false;
     if (card.type !== pendingType) return false;
     return true;
   }
 
+  if (card.type === 'smiley') return true;
   if (isWild) return true;
   if (matchesColor) return true;
   if (matchesType) return true;

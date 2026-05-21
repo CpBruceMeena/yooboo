@@ -168,24 +168,41 @@ export default function DiscardAllModal({ open, hand, presetColor, onSelect }: D
         </div>
       )}
 
-      <div className="flex gap-3 justify-center">
-        <button
-          onClick={handleConfirm}
-          disabled={!selectedColor}
-          className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 cursor-pointer ${
-            selectedColor
-              ? 'bg-gradient-to-r from-neonPink to-neonOrange text-white shadow-lg'
-              : 'bg-bgTertiary/50 text-textMuted/30 cursor-not-allowed'
-          }`}
-        >
-          {selectedCardIds.length > 0 ? `Discard ${selectedCardIds.length}` : 'Play Card Only'}
-        </button>
-        <button
-          onClick={handleCancel}
-          className="px-4 py-2.5 rounded-lg bg-bgTertiary/80 hover:bg-bgTertiary text-textPrimary border border-white/10 hover:border-white/20 transition-all cursor-pointer text-sm"
-        >
-          Cancel
-        </button>
+      <div className="flex flex-col gap-3">
+        {selectedColor && matchingCards.length > 0 && (
+          <button
+            onClick={() => {
+              const allIds = matchingCards.map((c) => c.id);
+              onSelect(selectedColor!, allIds);
+              setSelectedColor(null);
+              setSelectedCardIds([]);
+            }}
+            className="w-full py-3 rounded-xl font-mono text-sm font-bold tracking-widest uppercase transition-all duration-200 cursor-pointer
+              bg-gradient-to-r from-gold to-goldGlow text-bgWarm shadow-lg shadow-gold/25 hover:shadow-gold/40 hover:scale-[1.02]"
+          >
+            Discard All {matchingCards.length} Cards
+          </button>
+        )}
+
+        <div className="flex gap-3 justify-center">
+          <button
+            onClick={handleConfirm}
+            disabled={!selectedColor}
+            className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 cursor-pointer ${
+              selectedColor
+                ? 'bg-gradient-to-r from-gold to-goldGlow text-bgWarm shadow-lg shadow-gold/25'
+                : 'bg-bgTertiary/50 text-textMuted/30 cursor-not-allowed'
+            }`}
+          >
+            {selectedCardIds.length > 0 ? `Discard ${selectedCardIds.length}` : 'Play Card Only'}
+          </button>
+          <button
+            onClick={handleCancel}
+            className="px-4 py-2.5 rounded-lg bg-bgTertiary/80 hover:bg-bgTertiary text-textPrimary border border-white/10 hover:border-white/20 transition-all cursor-pointer text-sm"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </Modal>
   );

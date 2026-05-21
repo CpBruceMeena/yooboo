@@ -83,6 +83,13 @@ export function setupGameServer(io: SocketIOServer) {
         rooms.set(roomId, room);
       }
 
+      // If room exists but no active game, reset state to prevent stale data
+      if (room.state && room.state.status !== 'in_game') {
+        console.log('reset stale room state for', roomId, '(status:', room.state.status, ')');
+        room.state = null;
+        room.lobbyPlayers = [];
+      }
+
       if (room.state && room.state.status === 'in_game') {
         // Allow reconnection: check if player name matches an existing player
         const existingPlayer = room.state.players.find(p => p.name === playerName);
@@ -196,9 +203,35 @@ export function setupGameServer(io: SocketIOServer) {
         room.state = createInitialState(info.roomId, players);
         console.log('start_game room.clients entries', Array.from(room.clients.entries()));
 
+        // First, prune stale clients (disconnected sockets still in the map)
+        const staleSids: string[] = [];
+        for (const [sid] of room.clients) {
+          const sock = io.sockets.sockets.get(sid);
+          if (!sock || !sock.connected) {
+            console.log('start_game pruning stale socket', sid);
+            staleSids.push(sid);
+          }
+        }
+        for (const sid of staleSids) {
+          const pid = room.clients.get(sid);
+          if (pid) {
+            room.lobbyPlayers = room.lobbyPlayers.filter(p => p.id !== pid);
+            clientMap.delete(sid);
+          }
+          room.clients.delete(sid);
+        }
+
+        // After pruning, check if we still have enough players
+        if (room.clients.size < 2) {
+          socket.emit('invalid_move', { reason: 'Not enough connected players. Everyone should refresh and rejoin.' });
+          room.state = null;
+          return;
+        }
+
         // Track which sockets received the state update
         let sentCount = 0;
-        for (const sid of room.clients.keys()) {
+        const failedSids: string[] = [];
+        for (const [sid, pid] of room.clients) {
           const cInfo = clientMap.get(sid);
           console.log('start_game loop sid', sid, 'cInfo', cInfo);
           if (cInfo) {
@@ -218,16 +251,27 @@ export function setupGameServer(io: SocketIOServer) {
               sentCount++;
             } else {
               console.log('start_game could not find player for cInfo', cInfo);
+              failedSids.push(sid);
             }
           } else {
             console.log('start_game missing client info for socket id', sid);
+            failedSids.push(sid);
           }
+        }
+
+        // Clean up failed entries
+        for (const sid of failedSids) {
+          const pid = room.clients.get(sid);
+          if (pid) clientMap.delete(sid);
+          room.clients.delete(sid);
         }
 
         // If no sockets received the update, something is wrong — report to the requester
         if (sentCount === 0) {
-          socket.emit('invalid_move', { reason: 'Failed to start: no connected players found. Try again.' });
+          socket.emit('invalid_move', { reason: 'Failed to start: no connected players found. Please refresh and try again.' });
           rooms.delete(info.roomId);
+        } else if (sentCount < room.clients.size + failedSids.length) {
+          console.log('start_game: only', sentCount, 'of', sentCount + failedSids.length, 'players received state_update (', failedSids.length, 'failed)');
         }
       } catch (err) {
         console.error('Error in start_game handler:', err);
@@ -270,9 +314,26 @@ export function setupGameServer(io: SocketIOServer) {
         const nextPlayer = state.players[nextIdx];
         const result = resolveSmileyDraw(state, nextIdx, payload.chosenColor ?? 'red');
 
-        // Emit all drawn cards at once for the client to animate one-by-one
-        io.to(info.roomId).emit('smiley_draw', {
-          cards: result.drawn,
+        // Move eliminated player's hand to discard pile
+        if (result.eliminated) {
+          state.discardPile.push(...nextPlayer.hand);
+          nextPlayer.hand = [];
+        }
+
+        // Emit cards ONE BY ONE so no client knows the total count
+        // (preserves suspense — players can't count how many are drawn)
+        io.to(info.roomId).emit('smiley_start', {
+          playerId: nextPlayer.id,
+        });
+
+        for (const card of result.drawn) {
+          io.to(info.roomId).emit('smiley_card', {
+            card,
+            playerId: nextPlayer.id,
+          });
+        }
+
+        io.to(info.roomId).emit('smiley_result', {
           playerId: nextPlayer.id,
           matched: result.matched,
           eliminated: result.eliminated,
@@ -289,7 +350,12 @@ export function setupGameServer(io: SocketIOServer) {
       } else if (effects.includes('skip_everyone')) {
         // Turn stays
       } else if (effects.includes('discard_all')) {
-        // Discard all handled via modal on client
+        // If playing discardAll on top of another discardAll, advance turn immediately
+        // (client won't show discard modal, so no discard_color event will follow)
+        const prevTop = state.discardPile[state.discardPile.length - 2];
+        if (prevTop?.type === 'discardAll') {
+          nextTurn(state);
+        }
       } else if (effects.includes('skip')) {
         nextTurn(state);
       } else {
@@ -328,13 +394,16 @@ export function setupGameServer(io: SocketIOServer) {
         const drawn = resolveStack(state, playerIdx);
         for (const card of drawn) {
           io.to(info.roomId).emit('card_revealed', { card, playerId: player.id });
-        }
-
-        const elimId = checkElimination(state);
+        }      const elimId = checkElimination(state);
         if (elimId) {
           io.to(info.roomId).emit('player_eliminated', { playerId: elimId });
+          // Move eliminated player's cards to discard pile
+          const eliminated = state.players.find(p => p.id === elimId);
+          if (eliminated) {
+            state.discardPile.push(...eliminated.hand);
+            eliminated.hand = [];
+          }
         }
-
         const winner = checkWinner(state);
         if (winner) {
           io.to(info.roomId).emit('game_won', { winnerId: winner });
@@ -381,9 +450,19 @@ export function setupGameServer(io: SocketIOServer) {
       if (!player) return;
 
       // The discardAll card is already on the discard pile (played via play_card).
-      // The card's color is the active color.
-      // If specific card IDs provided, only discard those specific cards.
-      // If cardIds is empty or undefined, the player just played the discard card alone — no cards discarded.
+      // Validate: if there are cardIds to discard, the color must match the active color
+      // (which is the color of the discardAll card currently on top)
+      if (cardIds && cardIds.length > 0) {
+        const top = state.discardPile[state.discardPile.length - 1];
+        if (top?.type === 'discardAll' && top.color !== color) {
+          // Color mismatch — discard not allowed, just play the discardAll card alone
+          cardIds = [];
+        } else if (color !== state.activeColor) {
+          // General case: color must match active color
+          cardIds = [];
+        }
+      }
+
       if (cardIds && cardIds.length > 0) {
         player.hand = player.hand.filter((c) => !cardIds.includes(c.id));
       }
@@ -407,6 +486,21 @@ export function setupGameServer(io: SocketIOServer) {
       }
 
       broadcastState(room, io);
+    });
+
+    socket.on('lobby_rooms', () => {
+      // Return list of rooms in lobby state
+      const lobbyRooms: { roomId: string; playerCount: number; players: { id: string; name: string }[] }[] = [];
+      for (const [roomId, room] of rooms) {
+        if (!room.state || room.state.status === 'lobby') {
+          lobbyRooms.push({
+            roomId,
+            playerCount: room.clients.size,
+            players: room.lobbyPlayers.map(p => ({ id: p.id, name: p.name })),
+          });
+        }
+      }
+      socket.emit('lobby_rooms', { rooms: lobbyRooms });
     });
 
     socket.on('skip_turn', () => {
@@ -447,6 +541,32 @@ export function setupGameServer(io: SocketIOServer) {
       if (!room || !room.state) return;
       const player = room.state.players.find((p) => p.id === info.playerId);
       if (player) player.saidUno = true;
+    });
+
+    socket.on('emote', ({ emote }: { emote: string }) => {
+      const info = clientMap.get(socket.id);
+      if (!info) return;
+      const room = rooms.get(info.roomId);
+      if (!room) return;
+      io.to(info.roomId).emit('emote_received', {
+        playerId: info.playerId,
+        playerName: info.playerName,
+        emote,
+      });
+    });
+
+    socket.on('chat_message', ({ message }: { message: string }) => {
+      const info = clientMap.get(socket.id);
+      if (!info) return;
+      const room = rooms.get(info.roomId);
+      if (!room) return;
+      // Validate: no empty messages or too long
+      if (!message.trim() || message.length > 200) return;
+      io.to(info.roomId).emit('chat_message', {
+        playerId: info.playerId,
+        playerName: info.playerName,
+        message: message.trim(),
+      });
     });
 
     socket.on('disconnect', () => {

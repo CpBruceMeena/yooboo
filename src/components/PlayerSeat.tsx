@@ -62,7 +62,7 @@ export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, 
               duration: 2,
               ease: 'easeInOut',
             }}
-            className="absolute -inset-1 rounded-full bg-gradient-to-br from-blue to-wild"
+            className="absolute -inset-1 rounded-full bg-gradient-to-br from-gold to-goldGlow"
           />
         )}
         {/* UNO glow */}
@@ -76,7 +76,7 @@ export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, 
               duration: 1.5,
               ease: 'easeInOut',
             }}
-            className="absolute -inset-1 rounded-full bg-gradient-to-br from-success to-green"
+            className="absolute -inset-1 rounded-full bg-gradient-to-br from-goldGlow to-gold/60"
           />
         )}
         <div
@@ -125,9 +125,7 @@ export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, 
         >
           {player.name}
         </motion.span>
-        {!isHorizontal && (
-          <span className="text-[11px] text-textMuted/70">{cardCount} cards</span>
-        )}
+        <span className="text-[11px] text-textMuted/70">{cardCount} cards</span>
         {isUno && (
           <motion.span
             initial={{ scale: 0.5, opacity: 0 }}
