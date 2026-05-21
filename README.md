@@ -34,16 +34,15 @@ The app runs as 3 processes behind nginx. The easiest way is using the provided 
 ./run.sh
 ```
 
-This starts all 3 processes in tmux panes (or background if tmux unavailable):
+This starts both processes in tmux panes (or background if tmux unavailable):
 | Process | Port | Description |
 |---|---|---|
 | nginx | 3000 | Entry point. Proxies Socket.IO to game server, HTTP to Next.js |
 | Next.js | 3001 | Frontend (internal, not directly accessed) |
-| Game Server | 3002 | Socket.IO game engine at `/api/socketio` |
 
 Open `http://localhost:3000` to play.
 
-### 3. Manual start (3 terminals)
+### 3. Manual start (2 terminals)
 
 ```bash
 # Terminal 1: nginx reverse proxy
@@ -143,10 +142,9 @@ Client (Next.js + Tailwind v4) -------- HTTPS -------> nginx (:3000)
                                                             │
                                             ┌───────────────┼───────────────┐
                                             ▼                               ▼
-                                     Game Server (:3002)              Next.js (:3001)
-                                     Socket.IO /api/socketio          UI rendering
+                                     Socket.IO (/api/socketio)        Next.js (:3001)
+                                     Game engine (pure TS)            UI rendering
                                             │
-                                      Game Engine (pure TS)
                                       - Authoritative validation
                                       - Card effects
                                       - Stack/smiley resolution
