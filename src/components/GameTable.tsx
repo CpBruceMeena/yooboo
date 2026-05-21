@@ -50,7 +50,7 @@ export default function GameTable({
     <div className="flex-1 flex flex-col bg-bgPrimary relative overflow-hidden">
       <PlayerRing gameState={gameState} currentPlayerId={playerId} />
 
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center pt-16">
         <div className="flex items-center gap-12">
           <DrawPile
             cardCount={gameState.drawPile.length}

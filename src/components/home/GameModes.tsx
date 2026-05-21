@@ -8,10 +8,10 @@ export default function GameModes() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [roomId, setRoomId] = useState('');
-  const [showInput, setShowInput] = useState<'classic' | 'nomercy' | null>(null);
+  const [showInput, setShowInput] = useState(false);
 
-  const handlePlay = (mode: 'classic' | 'nomercy') => {
-    setShowInput(mode);
+  const handlePlay = () => {
+    setShowInput(true);
   };
 
   const handleCreateRoom = () => {
@@ -43,7 +43,7 @@ export default function GameModes() {
           className="text-center mb-4"
         >
           <span className="font-mono text-[10px] tracking-[0.35em] text-gold/50 uppercase">
-            // Choose Your Battlefield
+            // The Only Way to Play
           </span>
         </motion.div>
 
@@ -55,64 +55,18 @@ export default function GameModes() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="font-serif text-4xl sm:text-5xl md:text-6xl font-bold text-cream text-center leading-tight mb-14"
         >
-          Game Modes
+          No Mercy
         </motion.h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-          {/* Classic Mode */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8">
+          {/* No Mercy Mode — full width */}
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-80px' }}
             transition={{ type: 'spring', stiffness: 100, damping: 18 }}
             whileHover={{ y: -8, scale: 1.01 }}
-            className="group relative bg-surface/80 backdrop-blur-sm rounded-2xl border border-gold/15 p-8 sm:p-10 overflow-hidden home-card-glow"
-          >
-            {/* Badge */}
-            <div className="inline-block mb-5 px-3 py-1 rounded-full bg-green/10 border border-green/20">
-              <span className="font-mono text-[9px] tracking-wider text-green/70 uppercase">Friendly</span>
-            </div>
-
-            <h3 className="font-serif text-3xl sm:text-4xl font-bold text-cream mb-3">
-              Classic
-            </h3>
-
-            <p className="font-serif-alt text-sm text-creamMuted/50 italic mb-2 leading-relaxed">
-              The traditional experience. Match, skip, reverse — but the stakes are real.
-            </p>
-
-            <ul className="space-y-2 mb-8">
-              {['2–10 Players', 'Standard rules', 'Family-friendly pace', 'No elimination'].map((item) => (
-                <li key={item} className="flex items-center gap-2.5 text-sm text-creamMuted/60">
-                  <span className="w-1 h-1 rounded-full bg-gold/40 shrink-0" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-
-            <motion.button
-              onClick={() => handlePlay('classic')}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="
-                w-full py-3.5 rounded-lg text-sm font-mono tracking-[0.2em] uppercase font-semibold
-                bg-gradient-to-r from-gold to-goldGlow text-bgWarm
-                shadow-lg shadow-gold/20 hover:shadow-gold/35
-                transition-all duration-300 cursor-pointer
-              "
-            >
-              JOIN LOBBY
-            </motion.button>
-          </motion.div>
-
-          {/* No Mercy Mode */}
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: '-80px' }}
-            transition={{ type: 'spring', stiffness: 100, damping: 18 }}
-            whileHover={{ y: -8, scale: 1.01 }}
-            className="group relative bg-surface/80 backdrop-blur-sm rounded-2xl border border-crimson/20 p-8 sm:p-10 overflow-hidden home-card-glow"
+            className="md:col-span-12 group relative bg-surface/80 backdrop-blur-sm rounded-2xl border border-crimson/20 p-8 sm:p-10 overflow-hidden home-card-glow"
           >
             {/* Red glow accent */}
             <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full pointer-events-none"
@@ -135,7 +89,7 @@ export default function GameModes() {
             </p>
 
             <ul className="space-y-2 mb-8">
-              {['Stacking +2 / +4 / +6 / +10', 'Mercy Rule at 25 cards', '7\'s Swap hands', '0\'s Pass all hands'].map((item) => (
+              {['Stacking +2 / +4 / +6 / +10', 'Mercy Rule at 25 cards', '7\'s Swap hands', '0\'s Pass all hands', 'Drawing Smiley cards', 'Elimination on 25+ cards'].map((item) => (
                 <li key={item} className="flex items-center gap-2.5 text-sm text-creamMuted/60">
                   <span className="w-1 h-1 rounded-full bg-crimson/50 shrink-0" />
                   {item}
@@ -144,7 +98,7 @@ export default function GameModes() {
             </ul>
 
             <motion.button
-              onClick={() => handlePlay('nomercy')}
+              onClick={() => handlePlay()}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               className="
@@ -165,7 +119,7 @@ export default function GameModes() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-            onClick={() => setShowInput(null)}
+            onClick={() => setShowInput(false)}
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
@@ -240,7 +194,7 @@ export default function GameModes() {
                   </motion.button>
                 )}
                 <motion.button
-                  onClick={() => setShowInput(null)}
+                  onClick={() => setShowInput(false)}
                   whileHover={{ scale: 1.02 }}
                   className="w-full py-2.5 rounded-lg text-sm font-mono tracking-wider text-creamMuted/40 hover:text-cream border border-white/5 hover:border-white/15 transition-all cursor-pointer mt-1"
                 >

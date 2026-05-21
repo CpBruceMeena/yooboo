@@ -9,13 +9,14 @@ interface CardProps {
   value?: number;
   state?: 'default' | 'playable' | 'selected' | 'disabled';
   onClick?: () => void;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 const sizeMap: Record<string, string> = {
-  sm: 'w-11 h-16 text-[10px]',
+  sm: 'w-[38px] h-[54px] text-[9px]',
   md: 'w-16 h-22 text-xs',
   lg: 'w-20 h-26 text-base',
+  xl: 'w-28 h-[164px] text-lg',
 };
 
 /* ── Premium Casino Noir + Cyberpunk Gradients ── */
@@ -110,8 +111,7 @@ export default function Card({ type, color, value, state = 'default', onClick, s
   return (
     <motion.div
       onClick={canInteract ? onClick : undefined}
-      layout
-      whileHover={canInteract ? { y: -10, scale: 1.08 } : undefined}
+      whileHover={canInteract ? { y: -4 } : undefined}
       whileTap={canInteract ? { scale: 0.95 } : undefined}
       animate={{
         y: isSelected ? -14 : 0,

@@ -695,33 +695,6 @@ body::after {
   pointer-events: none;
 }
 
-/* ========== CARD HOVER PREVIEW ========== */
-
-@keyframes preview-float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-4px) scale(1); }
-}
-
-.animate-preview-float {
-  animation: preview-float 2.5s ease-in-out infinite;
-}
-
-@keyframes preview-glow {
-  0%, 100% { box-shadow: 0 0 12px rgba(201,149,42,0.15), 0 8px 32px rgba(0,0,0,0.5); }
-  50% { box-shadow: 0 0 20px rgba(201,149,42,0.25), 0 8px 40px rgba(0,0,0,0.55); }
-}
-
-.animate-preview-glow {
-  animation: preview-glow 2.5s ease-in-out infinite;
-}
-
-/* Preview card pip (top left) */
-.preview-pip {
-  font-family: var(--font-display);
-  font-size: 14px;
-  line-height: 1;
-}
-
 /* ========== DRAW PILE SHUFFLE ANIMATION ========== */
 
 /* Shuffle vibration */

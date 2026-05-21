@@ -66,12 +66,13 @@ function FlipCard({ card, isRevealed, index }: { card: CardType; isRevealed: boo
       layout
       className="relative shrink-0 perspective-800"
       style={{ width: 64, height: 96 }}
-      initial={{ opacity: 0 }}
+      initial={false}
       animate={{ opacity: 1 }}
       transition={{ delay: index * 0.15 }}
     >
       <motion.div
         className="relative w-full h-full preserve-3d"
+        initial={false}
         animate={{
           rotateY: isRevealed ? 0 : 180,
           scale: isRevealed ? 1 : 0.85,
@@ -222,28 +223,26 @@ export default function SmileyReveal({
           <div className="h-[1px] w-24 mx-auto mt-2 bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
         </motion.div>
 
-        {/* Card reveal area */}
-        <div className="flex flex-wrap justify-center gap-2 min-h-[110px] items-center py-4">
-          <AnimatePresence mode="popLayout">
-            {cards.length === 0 && !showFace && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-creamMuted/40 text-sm font-mono tracking-wider"
-              >
-                No cards drawn...
-              </motion.p>
-            )}
+        {/* Card reveal area — always visible once revealed, never hidden */}
+        <div className="flex flex-wrap justify-center gap-2 min-h-[110px] items-center py-4 relative">
+          {cards.length === 0 && !showFace && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-creamMuted/40 text-sm font-mono tracking-wider"
+            >
+              No cards drawn...
+            </motion.p>
+          )}
 
-            {cards.map((card, index) => (
-              <FlipCard
-                key={card.id}
-                card={card}
-                isRevealed={revealedIndex >= index}
-                index={index}
-              />
-            ))}
-          </AnimatePresence>
+          {cards.map((card, index) => (
+            <FlipCard
+              key={card.id}
+              card={card}
+              isRevealed={revealedIndex >= index}
+              index={index}
+            />
+          ))}
         </div>
 
         {/* Status messages */}
@@ -300,23 +299,27 @@ export default function SmileyReveal({
         </div>
       </div>
 
-      {/* Skull / Smiley face reveal */}
+      {/* Face emoji — appears as a watermark behind the cards, never covering them */}
       <AnimatePresence>
         {showFace && (
           <motion.div
             key="face-reveal"
-            className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
+            className="absolute inset-0 z-[5] flex items-center justify-center pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
           >
-            {/* Particle bursts */}
+            {/* Particle bursts — behind cards */}
             {eliminated && <ParticleBurst color="#FF003C" count={20} />}
             {matched && <ParticleBurst color="#E8B84B" count={20} />}
             {!eliminated && !matched && <ParticleBurst color="#C4B89B" count={12} />}
 
-            {/* Large face emoji */}
+            {/* Large face emoji — subtle background presence */}
             <motion.span
-              className="text-[100px] sm:text-[140px] md:text-[180px] animate-face-reveal drop-shadow-2xl"
+              className="text-[120px] sm:text-[160px] md:text-[200px] drop-shadow-2xl opacity-40"
               animate={{
-                scale: [1, 1.15, 1],
+                scale: [1, 1.1, 1],
                 rotate: eliminated ? [-5, 5, -3, 3, 0] : [0, -5, 5, 0],
               }}
               transition={{
@@ -327,24 +330,6 @@ export default function SmileyReveal({
             >
               {faceEmoji}
             </motion.span>
-
-            {/* Text under face */}
-            <motion.p
-              className="absolute bottom-[15%] text-center text-lg font-display tracking-[0.2em]"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.5 }}
-              style={{
-                color: eliminated ? '#C0392B' : matched ? '#E8B84B' : '#C4B89B',
-                textShadow: eliminated
-                  ? '0 0 30px rgba(192,57,43,0.3), 0 2px 10px rgba(0,0,0,0.5)'
-                  : matched
-                    ? '0 0 30px rgba(232,184,75,0.3), 0 2px 10px rgba(0,0,0,0.5)'
-                    : '0 0 30px rgba(196,184,155,0.2), 0 2px 10px rgba(0,0,0,0.5)',
-              }}
-            >
-              {eliminated ? 'ELIMINATED' : matched ? 'SAFE' : 'NO MATCH'}
-            </motion.p>
           </motion.div>
         )}
       </AnimatePresence>

@@ -6,8 +6,6 @@ import { motion, AnimatePresence } from 'motion/react';
 const navLinks = [
   { label: 'PLAY', href: '#hero' },
   { label: 'RULES', href: '#how-to-play' },
-  { label: 'MODES', href: '#game-modes' },
-  { label: 'JOIN', href: '#join-cta' },
 ];
 
 export default function Navbar() {
@@ -81,7 +79,7 @@ export default function Navbar() {
             ))}
             <div className="ml-4 pl-4 border-l border-white/5">
               <button
-                onClick={() => scrollTo('#join-cta')}
+                onClick={() => scrollTo('#hero')}
                 className="
                   px-6 py-2.5 rounded-lg text-[11px] font-mono tracking-[0.2em] uppercase font-semibold
                   bg-gradient-to-r from-gold to-goldGlow text-bgWarm
@@ -139,7 +137,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ delay: 0.35 }}
-              onClick={() => scrollTo('#join-cta')}
+              onClick={() => scrollTo('#hero')}
               className="
                 mt-4 px-10 py-4 rounded-lg text-sm font-mono tracking-[0.2em] uppercase font-semibold
                 bg-gradient-to-r from-gold to-goldGlow text-bgWarm
