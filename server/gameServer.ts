@@ -61,6 +61,7 @@ function createInitialState(roomId: string, players: { id: string; name: string 
     pendingType: null,
     smileyActive: false,
     smileyColor: null,
+    skipEveryoneActive: false,
     status: 'in_game',
     winnerId: null,
   };
@@ -332,6 +333,18 @@ export function setupGameServer(io: SocketIOServer) {
         }
       }
 
+      // If Skip Everyone was active and this card isn't another Skip Everyone,
+      // advance the turn — player only gets one action after a Skip All.
+      // Only advance if no other effect already called nextTurn (stack, smiley, skip)
+      // or if discardAll (turn advances later via discard_color event).
+      if (state.skipEveryoneActive && !effects.includes('skip_everyone')) {
+        state.skipEveryoneActive = false;
+        const turnAlreadyHandled = effects.includes('stack') || effects.includes('smiley') || effects.includes('skip');
+        if (!turnAlreadyHandled && !effects.includes('discard_all')) {
+          nextTurn(state);
+        }
+      }
+
       if (!effects.includes('stack') && !effects.includes('smiley')) {
         const elimId = checkElimination(state);
         if (elimId) {
@@ -427,7 +440,12 @@ export function setupGameServer(io: SocketIOServer) {
           io.to(info.roomId).emit('game_won', { winnerId: winner });
         }
 
-        // Turn stays — player can play any card after drawing
+        // If Skip Everyone was active, advance turn — player only gets one action
+        if (state.skipEveryoneActive) {
+          state.skipEveryoneActive = false;
+          nextTurn(state);
+        }
+        // Otherwise, turn stays — player can play any card after drawing
       }
 
       broadcastState(room, io);

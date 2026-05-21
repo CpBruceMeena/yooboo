@@ -78,6 +78,7 @@ export function applyCardEffect(
         state.activeColor = card.color;
         effects.push('color_change');
       }
+      state.skipEveryoneActive = true;
       effects.push('skip_everyone');
       break;
 

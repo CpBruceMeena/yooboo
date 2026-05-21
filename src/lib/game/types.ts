@@ -45,6 +45,7 @@ export interface GameState {
   pendingType: CardType | null;
   smileyActive: boolean;
   smileyColor: Exclude<CardColor, 'wild'> | null;
+  skipEveryoneActive: boolean;
   status: GameStatus;
   winnerId: string | null;
 }
