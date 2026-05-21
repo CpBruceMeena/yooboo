@@ -92,7 +92,7 @@ export function applyCardEffect(
     case 'smiley':
       state.activeColor = chosenColor ?? null;
       state.pendingDraw = 0;
-      state.pendingType = null;
+      state.pendingType = 'smiley';
       state.smileyActive = true;
       state.smileyColor = chosenColor ?? null;
       effects.push('smiley');

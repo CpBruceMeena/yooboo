@@ -310,40 +310,8 @@ export function setupGameServer(io: SocketIOServer) {
       }
 
       if (effects.includes('smiley')) {
-        const nextIdx = (state.currentPlayerIndex + state.direction + state.players.length) % state.players.length;
-        const nextPlayer = state.players[nextIdx];
-        const result = resolveSmileyDraw(state, nextIdx, payload.chosenColor ?? 'red');
-
-        // Move eliminated player's hand to discard pile
-        if (result.eliminated) {
-          state.discardPile.push(...nextPlayer.hand);
-          nextPlayer.hand = [];
-        }
-
-        // Emit cards ONE BY ONE so no client knows the total count
-        // (preserves suspense — players can't count how many are drawn)
-        io.to(info.roomId).emit('smiley_start', {
-          playerId: nextPlayer.id,
-        });
-
-        for (const card of result.drawn) {
-          io.to(info.roomId).emit('smiley_card', {
-            card,
-            playerId: nextPlayer.id,
-          });
-        }
-
-        io.to(info.roomId).emit('smiley_result', {
-          playerId: nextPlayer.id,
-          matched: result.matched,
-          eliminated: result.eliminated,
-        });
-
-        // Broadcast elimination before state update if player was eliminated
-        if (result.eliminated) {
-          io.to(info.roomId).emit('player_eliminated', { playerId: nextPlayer.id });
-        }
-
+        // Smiley is stackable — don't resolve immediately.
+        // The next player can either play their own smiley (stack) or draw to trigger resolution.
         nextTurn(state);
       } else if (effects.includes('stack')) {
         nextTurn(state);
@@ -411,6 +379,32 @@ export function setupGameServer(io: SocketIOServer) {
 
         // Stack resolved — advance turn (player couldn't respond)
         nextTurn(state);
+      } else if (state.smileyActive) {
+        // Smiley draw: resolve the smiley for this player
+        const result = resolveSmileyDraw(state, playerIdx, state.smileyColor ?? 'red');
+
+        io.to(info.roomId).emit('smiley_start', { playerId: player.id });
+        for (const card of result.drawn) {
+          io.to(info.roomId).emit('smiley_card', { card, playerId: player.id });
+        }
+        io.to(info.roomId).emit('smiley_result', {
+          playerId: player.id,
+          matched: result.matched,
+          eliminated: result.eliminated,
+        });
+
+        if (result.eliminated) {
+          state.discardPile.push(...player.hand);
+          player.hand = [];
+          io.to(info.roomId).emit('player_eliminated', { playerId: player.id });
+        }
+
+        const winner = checkWinner(state);
+        if (winner) {
+          io.to(info.roomId).emit('game_won', { winnerId: winner });
+        } else {
+          nextTurn(state);
+        }
       } else {
         // Normal draw: player draws 1 card and keeps their turn to play any card
         if (state.drawPile.length === 0) {
@@ -512,8 +506,36 @@ export function setupGameServer(io: SocketIOServer) {
       const playerIdx = state.players.findIndex((p) => p.id === info.playerId);
       if (playerIdx === -1 || state.currentPlayerIndex !== playerIdx) return;
 
-      // Player chose to skip after drawing — advance turn
-      nextTurn(state);
+      // If smiley is active, resolve it instead of skipping
+      if (state.smileyActive) {
+        const player = state.players[playerIdx];
+        const result = resolveSmileyDraw(state, playerIdx, state.smileyColor ?? 'red');
+
+        io.to(info.roomId).emit('smiley_start', { playerId: player.id });
+        for (const card of result.drawn) {
+          io.to(info.roomId).emit('smiley_card', { card, playerId: player.id });
+        }
+        io.to(info.roomId).emit('smiley_result', {
+          playerId: player.id,
+          matched: result.matched,
+          eliminated: result.eliminated,
+        });
+
+        if (result.eliminated) {
+          state.discardPile.push(...player.hand);
+          player.hand = [];
+          io.to(info.roomId).emit('player_eliminated', { playerId: player.id });
+        }
+
+        const winner = checkWinner(state);
+        if (winner) {
+          io.to(info.roomId).emit('game_won', { winnerId: winner });
+        } else {
+          nextTurn(state);
+        }
+      } else {
+        nextTurn(state);
+      }
       broadcastState(room, io);
     });
 

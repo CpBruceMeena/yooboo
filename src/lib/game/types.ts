@@ -50,7 +50,7 @@ export interface GameState {
 }
 
 export const STACKABLE: CardType[] = [
-  'plus2', 'plus4', 'plus6', 'plus10', 'reverse4',
+  'plus2', 'plus4', 'plus6', 'plus10', 'reverse4', 'smiley',
 ];
 
 export const COLORS: Exclude<CardColor, 'wild'>[] = ['red', 'yellow', 'green', 'blue'];

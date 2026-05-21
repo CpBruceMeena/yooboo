@@ -51,18 +51,54 @@ export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, 
       `}
     >
       <div className="relative shrink-0">
-        {/* Avatar glow ring for active/current player */}
-        {(isActive || isCurrentPlayer) && (
+        {/* Turn glow ring — pulsing gold aura for the active player */}
+        {isActive && (
+          <>
+            {/* Outer aura ring */}
+            <motion.div
+              animate={{
+                opacity: [0.5, 0.9, 0.5],
+                scale: [1, 1.08, 1],
+              }}
+              transition={{
+                repeat: Infinity,
+                duration: 2,
+                ease: 'easeInOut',
+              }}
+              className="absolute -inset-2 rounded-full bg-gradient-to-br from-gold/60 via-goldGlow/40 to-gold/20 blur-sm"
+            />
+            {/* Inner glow ring */}
+            <motion.div
+              animate={{
+                opacity: [0.6, 1, 0.6],
+                scale: [1, 1.04, 1],
+                boxShadow: [
+                  '0 0 8px rgba(232,184,75,0.3)',
+                  '0 0 16px rgba(232,184,75,0.6)',
+                  '0 0 8px rgba(232,184,75,0.3)',
+                ],
+              }}
+              transition={{
+                repeat: Infinity,
+                duration: 2,
+                ease: 'easeInOut',
+              }}
+              className="absolute -inset-1 rounded-full bg-gradient-to-br from-gold to-goldGlow"
+            />
+          </>
+        )}
+        {/* Local player indicator — softer static glow */}
+        {!isActive && isCurrentPlayer && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 0.4, scale: 1 }}
+            animate={{ opacity: 0.5, scale: 1 }}
             transition={{
               repeat: Infinity,
               repeatType: 'reverse',
-              duration: 2,
+              duration: 2.5,
               ease: 'easeInOut',
             }}
-            className="absolute -inset-1 rounded-full bg-gradient-to-br from-gold to-goldGlow"
+            className="absolute -inset-1 rounded-full bg-gradient-to-br from-gold/60 to-goldGlow/40"
           />
         )}
         {/* UNO glow */}
@@ -83,8 +119,10 @@ export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, 
           className={`
             relative w-11 h-11 rounded-full overflow-hidden
             transition-all duration-300 bg-bgTertiary
-            ${isActive || isCurrentPlayer ? 'ring-2 ring-white/80' : 'ring-1 ring-white/15'}
-            ${isUno ? 'ring-2 ring-success' : ''}
+            ${isActive ? 'ring-2 ring-goldGlow shadow-[0_0_10px_rgba(232,184,75,0.4)]' : ''}
+            ${!isActive && isUno ? 'ring-2 ring-success' : ''}
+            ${!isActive && isCurrentPlayer && !isUno ? 'ring-2 ring-white/50' : ''}
+            ${!isActive && !isUno && !isCurrentPlayer ? 'ring-1 ring-white/15' : ''}
             ${isEliminated ? 'grayscale' : ''}
           `}
         >
@@ -121,10 +159,19 @@ export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, 
       <div className={`flex flex-col ${isHorizontal ? 'min-w-0' : ''}`}>
         <motion.span
           layout
-          className={`text-sm font-semibold text-textPrimary truncate max-w-[72px] ${isEliminated ? 'line-through opacity-60' : ''}`}
+          className={`text-sm font-semibold truncate max-w-[72px] ${isEliminated ? 'line-through opacity-60' : ''} ${isActive ? 'text-goldGlow drop-shadow-[0_0_6px_rgba(232,184,75,0.5)]' : 'text-textPrimary'}`}
         >
           {player.name}
         </motion.span>
+        {isActive && (
+          <motion.span
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-[9px] font-mono text-goldGlow/70 tracking-[0.15em] uppercase"
+          >
+            ● Turn
+          </motion.span>
+        )}
         <span className="text-[11px] text-textMuted/70">{cardCount} cards</span>
         {isUno && (
           <motion.span

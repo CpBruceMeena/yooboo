@@ -24,11 +24,6 @@ export default function Hero() {
     router.push(`/game?room=${encodeURIComponent(roomId.trim().toUpperCase())}&name=${encodeURIComponent(name.trim())}`);
   };
 
-  const scrollToRules = () => {
-    const el = document.querySelector('#how-to-play');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <section
       id="hero"
@@ -95,40 +90,30 @@ export default function Hero() {
         &ldquo;Draw four. No take-backs. No excuses.&rdquo;
       </motion.p>
 
-      {/* CTA Buttons */}
+      {/* PLAY NOW CTA Button */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: 'easeOut', delay: 0.9 }}
-        className="relative z-10 flex flex-col sm:flex-row gap-4 sm:gap-5"
+        transition={{ duration: 0.6, ease: 'easeOut', delay: 0.9 }}
+        className="relative z-10 mb-12"
       >
         <motion.button
           onClick={() => setShowInput(true)}
-          whileHover={{ scale: 1.04 }}
+          whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           className="
-            px-10 py-4 rounded-lg text-sm font-mono tracking-[0.25em] uppercase font-semibold
-            bg-gradient-to-r from-gold to-goldGlow text-bgWarm
-            shadow-xl shadow-gold/25 hover:shadow-gold/40
-            transition-all duration-300 cursor-pointer
-            animate-cta-pulse
+            relative px-10 py-4 rounded-xl text-sm font-mono tracking-[0.25em] uppercase font-bold
+            bg-gradient-to-b from-gold/90 to-amber-700/90
+            text-bgWarm shadow-2xl shadow-gold/30
+            border border-goldGlow/40
+            group cursor-pointer
           "
         >
-          PLAY NOW
-        </motion.button>
-
-        <motion.button
-          onClick={scrollToRules}
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.97 }}
-          className="
-            px-10 py-4 rounded-lg text-sm font-mono tracking-[0.25em] uppercase
-            border border-gold/30 text-gold/80 hover:text-goldGlow hover:border-gold/60
-            bg-transparent hover:bg-gold/[0.04]
-            transition-all duration-300 cursor-pointer
-          "
-        >
-          HOW TO PLAY
+          {/* Shine overlay */}
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-white/10 via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          {/* Border glow */}
+          <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-white/20 group-hover:ring-white/40 transition-all duration-300" />
+          <span className="relative z-10">Play Now</span>
         </motion.button>
       </motion.div>
 
