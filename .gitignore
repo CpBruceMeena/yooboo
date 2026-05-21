@@ -69,6 +69,16 @@ QODER.md
 .logs/
 .run.pid
 
+# Design docs and specs (not needed in version control)
+todo.txt
+card-design.md
+HOME_DESIGN.md
+ISSUE_REPORT.txt
+uno_no_mercy_uiux_design_system_spec.md
+uno-nomercy-homepage-design.md
+code-review-graph.html
+Gemini_Generated_Image_*.png
+
 # Server dependencies
 server/node_modules/
 server/package-lock.json

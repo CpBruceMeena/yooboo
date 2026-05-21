@@ -15,32 +15,28 @@ cd server && npm install && cd ..
 
 ### 2. Start the servers
 
-The app runs as 3 processes. The easiest way is using the provided script:
+The app runs as 2 processes. The easiest way is using the provided script:
 
 ```bash
 ./run.sh
 ```
 
-This starts all 3 processes in tmux panes (or background if tmux unavailable):
+This starts both processes in tmux panes (or background if tmux unavailable):
 | Process | Port | Description |
 |---|---|---|
-| Reverse Proxy | 3000 | Entry point. Proxies Socket.IO to game server, HTTP to Next.js |
+| Combined Server | 3000 | Reverse proxy + Socket.IO game engine |
 | Next.js | 3001 | Frontend (internal, not directly accessed) |
-| Game Server | 3002 | Socket.IO game engine at `/api/socketio` |
 
 Open `http://localhost:3000` to play.
 
-### 3. Manual start (3 terminals)
+### 3. Manual start (2 terminals)
 
 ```bash
-# Terminal 1: Game server (Socket.IO)
-cd server && npx tsx gameEntry.ts
+# Terminal 1: Combined server (Socket.IO + reverse proxy)
+cd server && npx tsx index.ts
 
 # Terminal 2: Next.js frontend
 npm run dev
-
-# Terminal 3: Reverse proxy
-cd server && npx tsx index.ts
 ```
 
 Open `http://localhost:3000` in two+ browser windows to play.
@@ -67,22 +63,20 @@ pkill -f "next dev"
 ## Architecture
 
 ```
-Client (Next.js + Tailwind v4) -------- HTTPS -------> Reverse Proxy (:3000)
+Client (Next.js + Tailwind v4) -------- HTTPS -------> Combined Server (:3000)
                                                             │
                                             ┌───────────────┼───────────────┐
                                             ▼                               ▼
-                                     Game Server (:3002)              Next.js (:3001)
-                                     Socket.IO /api/socketio          UI rendering
+                                     Socket.IO (/api/socketio)        Next.js (:3001)
+                                     Game engine (pure TS)            UI rendering
                                             │
-                                      Game Engine (pure TS)
                                       - Authoritative validation
                                       - Card effects
                                       - Stack/smiley resolution
                                       - Elimination/win checks
 ```
 
-- **Reverse Proxy** (port 3000, `http-proxy`): Entry point. Proxies Socket.IO paths to the game server and everything else to Next.js. Also handles WebSocket upgrades.
-- **Game Server** (port 3002, Socket.IO): Owns all game state and validates every move.
+- **Combined Server** (port 3000, Socket.IO + `http-proxy`): Single entry point. Handles Socket.IO natively at `/api/socketio` and proxies all other traffic (including WebSocket upgrades for Next.js HMR) to port 3001.
 - **Next.js** (port 3001, internal): Renders the frontend UI.
 - **No database needed** — rooms are in-memory (ephemeral)
 
@@ -115,27 +109,12 @@ src/
   components/     UI components
   app/            Next.js pages (lobby + game)
 server/
-  index.ts        HTTP + Socket.IO server entry
+  index.ts        Combined HTTP + Socket.IO server entry
   gameServer.ts   Authoritative game logic
+scripts/
+  smoke-test.mjs  Automated smoke test
 ```
 
-## Current Status & Next Steps
+## Rules
 
-- Status: Work in progress — an automated agent file `.agent.md` was added to help with fixes.
-- Goal: reproduce runtime/build errors locally, fix root causes, then verify with tests or a dev run.
-
-Recommended quick reproduction steps:
-
-```bash
-# From repo root
-npm install
-cd server && npm install
-
-# Start server (terminal 1)
-cd server && npx tsx index.ts
-
-# Start client (terminal 2)
-npm run dev
-```
-
-If you see errors while running, capture the full terminal output and share it with the agent.
+See [`RULES.md`](./RULES.md) for the complete game rules including card types, stacking mechanics, special cards (Smiley 😊, +4 Reverse, +6, +10), elimination, and winning conditions.
