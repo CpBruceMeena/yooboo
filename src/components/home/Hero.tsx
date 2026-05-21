@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import CardFan3D from './CardFan3D';
 import ParticleField from './ParticleField';
+import LobbyRooms from './LobbyRooms';
 
 export default function Hero() {
   const router = useRouter();
@@ -197,6 +198,13 @@ export default function Hero() {
               maxLength={8}
               className="w-full px-4 py-3 rounded-lg bg-bgWarm border border-gold/20 text-cream placeholder-creamMuted/30 text-sm outline-none font-mono tracking-widest focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all duration-200 mb-4 uppercase"
             />
+
+            <LobbyRooms onJoinRoom={(rid) => {
+              setRoomId(rid);
+              if (name.trim()) {
+                router.push(`/game?room=${encodeURIComponent(rid.toUpperCase())}&name=${encodeURIComponent(name.trim())}`);
+              }
+            }} />
 
             <div className="flex flex-col gap-2">
               <motion.button

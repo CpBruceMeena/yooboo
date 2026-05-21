@@ -18,6 +18,7 @@ interface UseGameReturn {
   handleColorSelect: (color: Exclude<CardColor, 'wild'>) => void;
   handleDiscardSelect: (color: Exclude<CardColor, 'wild'>) => void;
   handleEmote: (emote: string) => void;
+  handleSendChat: (message: string) => void;
   handleLeave: () => void;
   clearToast: () => void;
   cancelColor: () => void;
@@ -36,7 +37,6 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
   const [pendingCardId, setPendingCardId] = useState<string | null>(null);
   const [pendingDiscardColor, setPendingDiscardColor] = useState<Exclude<CardColor, 'wild'> | null>(null);
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
-  const [emotes, setEmotes] = useState<{ playerId: string; emote: string }[]>([]);
   const [selectedDiscardIds, setSelectedDiscardIds] = useState<string[]>([]);
 
   const gameState = rtc.gameState;
@@ -62,11 +62,18 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
         return;
       }
       if (card.type === 'discardAll') {
-        // Play the discard card first (goes to discard pile), then show modal
         rtc.playCard(cardId);
-        setPendingCardId(cardId);
-        setPendingDiscardColor(card.color as Exclude<CardColor, 'wild'>);
-        setShowDiscardAll(true);
+
+        // Only show discard modal if this is the FIRST discardAll in a chain.
+        // Playing discardAll over discardAll = just play the card, no extra discard.
+        const prevTop = gameState.discardPile[gameState.discardPile.length - 1];
+        if (!prevTop || prevTop.type !== 'discardAll') {
+          setPendingCardId(cardId);
+          setPendingDiscardColor(card.color as Exclude<CardColor, 'wild'>);
+          setShowDiscardAll(true);
+        }
+        // else: previous card is also discardAll — no modal, turn advances server-side
+
         setSelectedCardId(null);
         return;
       }
@@ -109,8 +116,13 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
   }, [rtc]);
 
   const handleEmote = useCallback((emote: string) => {
-    setEmotes((prev) => [...prev.slice(-10), { playerId: rtc.playerId ?? '', emote }]);
-  }, [rtc.playerId]);
+    // Emojis are sent as chat messages so they appear in the chat window
+    rtc.sendChat(emote);
+  }, [rtc]);
+
+  const handleSendChat = useCallback((message: string) => {
+    rtc.sendChat(message);
+  }, [rtc]);
 
   const handleLeave = useCallback(() => {
     rtc.leaveRoom();
@@ -140,6 +152,7 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
     handleColorSelect,
     handleDiscardSelect,
     handleEmote,
+    handleSendChat,
     handleLeave,
     clearToast,
     cancelColor,

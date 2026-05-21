@@ -59,71 +59,39 @@ function ParticleBurst({ color, count = 12 }: { color: string; count?: number })
   );
 }
 
-/* ── 3D Flip Card component ── */
-function FlipCard({ card, isRevealed, index }: { card: CardType; isRevealed: boolean; index: number }) {
+/* ── RevealCard — pops in with dramatic entrance (no DOM for unrevealed cards) ── */
+function RevealCard({ card, index }: { card: CardType; index: number }) {
   return (
     <motion.div
-      layout
-      className="relative shrink-0 perspective-800"
+      className="relative shrink-0"
       style={{ width: 64, height: 96 }}
-      initial={false}
-      animate={{ opacity: 1 }}
-      transition={{ delay: index * 0.15 }}
+      initial={{ scale: 0.3, opacity: 0, y: 20, rotate: -15 }}
+      animate={{ scale: 1, opacity: 1, y: 0, rotate: 0 }}
+      transition={{
+        type: 'spring',
+        stiffness: 300,
+        damping: 22,
+        mass: 0.7,
+        delay: index * 0.15,
+      }}
     >
+      <Card type={card.type} color={card.color} value={card.value} size="sm" state="default" />
+
+      {/* Reveal flare */}
       <motion.div
-        className="relative w-full h-full preserve-3d"
-        initial={false}
-        animate={{
-          rotateY: isRevealed ? 0 : 180,
-          scale: isRevealed ? 1 : 0.85,
-        }}
-        transition={{
-          type: 'spring',
-          stiffness: 200,
-          damping: 18,
-          mass: 1.2,
-          delay: index * 0.15,
-        }}
-      >
-        {/* Card Back */}
-        <div
-          className="absolute inset-0 rounded-xl backface-hidden"
-          style={{ backfaceVisibility: 'hidden' }}
-        >
-          <div className="w-full h-full rounded-xl bg-gradient-to-br from-[#1A1010] to-[#0D0D12] border-2 border-gold/20 flex items-center justify-center">
-            <span className="text-goldGlow/40 font-display text-2xl">?</span>
-          </div>
-        </div>
+        className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/30 via-transparent to-transparent"
+        initial={{ opacity: 0.8, scale: 1.1 }}
+        animate={{ opacity: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: 'easeOut', delay: 0.2 }}
+      />
 
-        {/* Card Front */}
-        <div
-          className="absolute inset-0 backface-hidden rotate-y-180"
-          style={{ backfaceVisibility: 'hidden' }}
-        >
-          {isRevealed && (
-            <>
-              <Card type={card.type} color={card.color} value={card.value} size="sm" state="default" />
-              {/* Reveal flare */}
-              <motion.div
-                className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/30 via-transparent to-transparent"
-                initial={{ opacity: 0.8, scale: 1.1 }}
-                animate={{ opacity: 0, scale: 1 }}
-                transition={{ duration: 0.6, ease: 'easeOut', delay: 0.2 }}
-              />
-            </>
-          )}
-        </div>
-      </motion.div>
-
-      {/* Glow ring on reveal */}
-      {isRevealed && (
-        <motion.div
-          className="absolute -inset-2 rounded-xl border-2 border-goldGlow/30 z-10 pointer-events-none"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: [0, 0.6, 0], scale: [0.8, 1.2, 1.5] }}
-          transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
-        />
-      )}
+      {/* Glow ring */}
+      <motion.div
+        className="absolute -inset-2 rounded-xl border-2 border-goldGlow/30 z-10 pointer-events-none"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: [0, 0.6, 0], scale: [0.8, 1.2, 1.5] }}
+        transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
+      />
     </motion.div>
   );
 }
@@ -160,7 +128,7 @@ export default function SmileyReveal({
         setRevealedIndex(currentIndex);
         currentIndex++;
         if (currentIndex < cards.length) {
-          const delay = 1200 + Math.random() * 1200;
+          const delay = 1000 + Math.random() * 1000; // 1–2 seconds between reveals
           timeouts.push(setTimeout(revealNext, delay));
         } else {
           setAllDone(true);
@@ -235,29 +203,14 @@ export default function SmileyReveal({
             </motion.p>
           )}
 
-          {cards.map((card, index) => (
-            <FlipCard
-              key={card.id}
-              card={card}
-              isRevealed={revealedIndex >= index}
-              index={index}
-            />
+          {/* Only render cards that have been revealed — no "?" placeholders, no way to count total */}
+          {cards.slice(0, revealedIndex + 1).map((card, index) => (
+            <RevealCard key={card.id} card={card} index={index} />
           ))}
         </div>
 
-        {/* Status messages */}
+        {/* Status messages — no count display, just reveal one by one silently */}
         <div className="min-h-[3rem] text-center">
-          {!allDone && revealedIndex >= 0 && revealedIndex < cards.length && (
-            <motion.p
-              key={revealedIndex}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-creamMuted/40 text-[10px] font-mono tracking-wider"
-            >
-              REVEALING CARD {revealedIndex + 1} OF {cards.length}
-            </motion.p>
-          )}
-
           {isLastRevealed && allDone && matched && !eliminated && (
             <motion.div
               initial={{ opacity: 0, scale: 0.5 }}

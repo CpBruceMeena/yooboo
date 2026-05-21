@@ -22,20 +22,18 @@ interface WebRTCReturn {
   skipTurn: () => void;
   discardColor: (color: Exclude<Card['color'], 'wild'>, cardIds?: string[]) => void;
   sayUno: () => void;
+  sendEmote: (emote: string) => void;
+  sendChat: (message: string) => void;
   leaveRoom: () => void;
   revealedCards: { card: Card; playerId: string }[];
   smileyReveal: { cards: Card[]; playerId: string; matched: boolean; eliminated: boolean } | null;
   clearSmileyReveal: () => void;
+  chatMessages: { playerId: string; playerName: string; message: string }[];
   unoCall: { playerId: string; playerName: string } | null;
   clearUnoCall: () => void;
 }
 
-interface SmileyDrawEvent {
-  cards: Card[];
-  playerId: string;
-  matched: boolean;
-  eliminated: boolean;
-}
+
 
 export function useWebRTC(): WebRTCReturn {
   const socketRef = useRef<Socket | null>(null);
@@ -54,6 +52,7 @@ export function useWebRTC(): WebRTCReturn {
   const [lobbyPlayers, setLobbyPlayers] = useState<LobbyPlayerInfo[]>([]);
   const [roomId, setRoomId] = useState<string | null>(null);
   const [unoCall, setUnoCall] = useState<{ playerId: string; playerName: string } | null>(null);
+  const [chatMessages, setChatMessages] = useState<{ playerId: string; playerName: string; message: string }[]>([]);
   const pendingJoinRef = useRef<{ roomId: string; playerName: string } | null>(null);
   const joinedRoomRef = useRef<{ roomId: string; playerName: string } | null>(null);
   const startGameTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -176,8 +175,30 @@ export function useWebRTC(): WebRTCReturn {
       setRevealedCards((prev) => [...prev, data]);
     });
 
-    socket.on('smiley_draw', (data: SmileyDrawEvent) => {
-      setSmileyReveal(data);
+    // Smiley per-card events: cards arrive one-by-one via a plain array (no re-renders),
+    // only assembled into final state when smiley_result arrives.
+    // This prevents anyone from knowing the total count before reveal.
+    const smileyCards: Card[] = [];
+
+    socket.on('smiley_start', () => {
+      smileyCards.length = 0;
+    });
+
+    socket.on('smiley_card', (data: { card: Card; playerId: string }) => {
+      smileyCards.push(data.card);
+    });
+
+    socket.on('smiley_result', (data: { playerId: string; matched: boolean; eliminated: boolean }) => {
+      setSmileyReveal({
+        cards: smileyCards.slice(),
+        playerId: data.playerId,
+        matched: data.matched,
+        eliminated: data.eliminated,
+      });
+    });
+
+    socket.on('chat_message', (data: { playerId: string; playerName: string; message: string }) => {
+      setChatMessages((prev) => [...prev.slice(-50), data]);
     });
 
     socket.on('uno_called', (data: { playerId: string; playerName: string }) => {
@@ -248,6 +269,15 @@ export function useWebRTC(): WebRTCReturn {
     socketRef.current?.emit('discard_color', { color, cardIds });
   }, []);
 
+  const sendEmote = useCallback((emote: string) => {
+    socketRef.current?.emit('emote', { emote });
+  }, []);
+
+  const sendChat = useCallback((message: string) => {
+    if (!message.trim() || message.length > 200) return;
+    socketRef.current?.emit('chat_message', { message: message.trim() });
+  }, []);
+
   const sayUno = useCallback(() => {
     socketRef.current?.emit('say_uno');
   }, []);
@@ -264,6 +294,7 @@ export function useWebRTC(): WebRTCReturn {
     setLobbyPlayers([]);
     setRoomId(null);
     setSmileyReveal(null);
+    setChatMessages([]);
   }, []);
 
   const clearSmileyReveal = useCallback(() => {
@@ -285,10 +316,13 @@ export function useWebRTC(): WebRTCReturn {
     skipTurn,
     discardColor,
     sayUno,
+    sendEmote,
+    sendChat,
     leaveRoom,
     revealedCards,
     smileyReveal,
     clearSmileyReveal,
+    chatMessages,
     unoCall,
     clearUnoCall,
   };

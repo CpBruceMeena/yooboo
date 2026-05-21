@@ -31,14 +31,15 @@ function reorderPlayersForDisplay(players: Player[], currentPlayerId: string | n
 }
 
 export default function PlayerRing({ gameState, currentPlayerId }: PlayerRingProps) {
-  const positions = getPositions(gameState.players.length);
+  const activePlayers = gameState.players.filter(p => !p.isEliminated);
+  const positions = getPositions(activePlayers.length);
   const currentPlayerIdForTurn = gameState.players[gameState.currentPlayerIndex]?.id;
 
   // Reorder players so local player is at bottom of the screen
   const displayPlayers = reorderPlayersForDisplay(
-    gameState.players,
+    activePlayers,
     currentPlayerId,
-    gameState.players.length,
+    activePlayers.length,
   );
 
   return (
@@ -46,9 +47,7 @@ export default function PlayerRing({ gameState, currentPlayerId }: PlayerRingPro
       {displayPlayers.map((player, idx) => {
         const isCurrent = player.id === currentPlayerId;
         const pos = positions[idx] ?? 'top';
-        const state = player.isEliminated
-          ? 'eliminated'
-          : player.hand.length === 1 && !player.isEliminated
+        const state = player.hand.length === 1 && !player.isEliminated
             ? 'uno'
             : player.id === currentPlayerIdForTurn
               ? 'active'

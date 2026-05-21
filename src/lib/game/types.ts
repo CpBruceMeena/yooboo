@@ -69,7 +69,9 @@ export type ClientMessage =
   | { type: 'leave_room' }
   | { type: 'play_card'; payload: PlayCardEvent }
   | { type: 'draw_card' }
-  | { type: 'say_uno' };
+  | { type: 'say_uno' }
+  | { type: 'chat_message'; message: string }
+  | { type: 'emote'; emote: string };
 
 export type ServerMessage =
   | { type: 'state_update'; state: GameState }
@@ -78,4 +80,6 @@ export type ServerMessage =
   | { type: 'game_won'; winnerId: string }
   | { type: 'card_revealed'; card: Card; playerId: string }
   | { type: 'you_are'; playerId: string; playerName: string }
-  | { type: 'room_joined'; roomId: string; players: Player[] };
+  | { type: 'room_joined'; roomId: string; players: Player[] }
+  | { type: 'chat_message'; playerId: string; playerName: string; message: string }
+  | { type: 'emote_received'; playerId: string; playerName: string; emote: string };

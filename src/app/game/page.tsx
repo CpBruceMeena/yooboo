@@ -213,10 +213,11 @@ function GameContent() {
     selectedCardId, showChangeColor, showDiscardAll, toast,
     handleCardClick, handleDraw, handleSkipTurn, handleSayUno,
     handleColorSelect, handleDiscardSelect,
-    handleEmote, handleLeave, clearToast, cancelColor,
+    handleEmote, handleSendChat, handleLeave, clearToast, cancelColor,
     isMyTurn,
     smileyReveal, clearSmileyReveal,
     discardHandCards, pendingDiscardColor,
+    chatMessages,
     unoCall, clearUnoCall,
   } = useGame();
 
@@ -241,13 +242,23 @@ function GameContent() {
   }, []);
 
   useEffect(() => {
-    if (gameState && gameState.status === 'in_game') {
-      if (gameState.currentPlayerIndex !== lastTurnRef.current) {
-        setHasDrawn(false);
-        lastTurnRef.current = gameState.currentPlayerIndex;
-      }
+    if (!gameState || gameState.status !== 'in_game') return;
+
+    // Reset hasDrawn when skipEveryone is played by the current player
+    // (turn stays, but player should be able to draw/play again)
+    const top = gameState.discardPile[gameState.discardPile.length - 1];
+    if (top?.type === 'skipEveryone' && isMyTurn) {
+      setHasDrawn(false);
+      lastTurnRef.current = gameState.currentPlayerIndex;
+      return;
     }
-  }, [gameState]);
+
+    // Normal turn change detection
+    if (gameState.currentPlayerIndex !== lastTurnRef.current) {
+      setHasDrawn(false);
+      lastTurnRef.current = gameState.currentPlayerIndex;
+    }
+  }, [gameState, isMyTurn]);
 
   const handleDrawClick = () => {
     handleDraw();
@@ -273,6 +284,27 @@ function GameContent() {
   const handleSmileyComplete = useCallback(() => {
     clearSmileyReveal();
   }, [clearSmileyReveal]);
+
+  // Track elimination — popup + persistent eliminated players list
+  const [eliminationPopup, setEliminationPopup] = useState<{ playerName: string } | null>(null);
+  const [eliminatedPlayersList, setEliminatedPlayersList] = useState<{ id: string; name: string }[]>([]);
+  const prevEliminatedRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!gameState) return;
+    const activeCount = gameState.players.filter(p => !p.isEliminated).length;
+    const eliminatedPlayers = gameState.players.filter(p => p.isEliminated);
+    for (const p of eliminatedPlayers) {
+      if (!prevEliminatedRef.current.has(p.id)) {
+        prevEliminatedRef.current.add(p.id);
+        // Add to persistent eliminated list
+        setEliminatedPlayersList(prev => [...prev, { id: p.id, name: p.name }]);
+        // If only 2 players were active (now 1 left), skip elimination popup
+        if (activeCount <= 1) continue;
+        setEliminationPopup({ playerName: p.name });
+        setTimeout(() => setEliminationPopup(null), 3000);
+      }
+    }
+  }, [gameState?.players]);
 
   // Track direction change for reverse animation + sound
   const prevDirectionRef = useRef(gameState?.direction);
@@ -375,13 +407,13 @@ function GameContent() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
       className="flex-1 flex flex-col h-screen"
-    >
-      <TopBar
-        roomId={actualRoomId}
-        currentPlayer={currentPlayerName}
-        direction={gameState.direction === 1 ? 'clockwise' : 'counter'}
-        stackValue={gameState.pendingDraw}
-      />
+    >        <TopBar
+          roomId={actualRoomId}
+          currentPlayer={currentPlayerName}
+          direction={gameState.direction === 1 ? 'clockwise' : 'counter'}
+          stackValue={gameState.pendingDraw}
+          onLeave={() => { handleLeave(); router.push('/'); }}
+        />
       <div className="flex flex-1 overflow-hidden">
         <GameTable
           gameState={gameState}
@@ -396,8 +428,10 @@ function GameContent() {
           onDraw={handleDrawClick}
           onSkipTurn={handleSkipTurn}
           onSayUno={handleSayUno}
-          onLeave={handleLeave}
           onEmote={handleEmote}
+          onSendChat={handleSendChat}
+          chatMessages={chatMessages}
+          playerId={playerId}
           disabled={!isMyTurn || isGameFinished || isSmileyAnimating}
           hasDrawn={hasDrawn}
           unoEligible={!!unoEligible}
@@ -487,6 +521,93 @@ function GameContent() {
         )}
       </AnimatePresence>
 
+      {/* Elimination notification */}
+      <AnimatePresence>
+        {eliminationPopup && (
+          <motion.div
+            key="elimination-popup"
+            initial={{ opacity: 0, scale: 0.5, rotate: -10 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            exit={{ opacity: 0, scale: 0.5, y: 40 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+            className="fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none"
+          >
+            <motion.div
+              className="bg-gradient-to-b from-crimson/20 to-crimson/5 backdrop-blur-xl py-6 px-10 rounded-2xl border-2 border-crimson/40 shadow-2xl flex flex-col items-center gap-3"
+              animate={{
+                boxShadow: ['0 0 20px rgba(192,57,43,0.2)', '0 0 50px rgba(192,57,43,0.5)', '0 0 20px rgba(192,57,43,0.2)'],
+              }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <motion.span
+                className="text-5xl"
+                animate={{ scale: [1, 1.2, 1], rotate: [0, -8, 8, 0] }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                ☠️
+              </motion.span>
+              <motion.span
+                className="text-cream font-display text-3xl tracking-widest font-black"
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 0.8, repeat: Infinity }}
+              >
+                ELIMINATED
+              </motion.span>
+              <span className="text-crimson/90 text-lg font-mono tracking-wider">
+                {eliminationPopup.playerName}
+              </span>
+              <span className="text-creamMuted/40 text-[10px] font-mono tracking-[0.2em] uppercase mt-1">
+                Exceeded 25 card limit
+              </span>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Eliminated players banner — bottom-right */}
+      <AnimatePresence>
+        {eliminatedPlayersList.length > 0 && (
+          <motion.div
+            key="eliminated-banner"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="fixed bottom-4 right-4 z-40 flex flex-col gap-1.5"
+          >
+            {eliminatedPlayersList.map((p) => {
+              const styleIdx = p.name.length % 5;
+              const diceBearStyles = ['notionists-neutral', 'avataaars', 'bottts-neutral', 'lorelei-neutral', 'thumbs'];
+              const seed = encodeURIComponent(p.name);
+              const avatarUrl = `https://api.dicebear.com/9.x/${diceBearStyles[styleIdx]}/svg?seed=${seed}`;
+              return (
+                <motion.div
+                  key={p.id}
+                  initial={{ opacity: 0, x: 40, scale: 0.8 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 40, scale: 0.8 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[#1A1512]/80 backdrop-blur-md border border-crimson/20 shadow-lg"
+                >
+                  <div className="w-6 h-6 rounded-full overflow-hidden shrink-0 bg-bgTertiary ring-1 ring-crimson/30">
+                    <img
+                      src={avatarUrl}
+                      alt={`${p.name}'s avatar`}
+                      className="w-full h-full object-cover grayscale"
+                      loading="lazy"
+                    />
+                  </div>
+                  <span className="text-[11px] font-mono text-crimson/80 tracking-wide">
+                    {p.name}
+                  </span>
+                  <span className="text-[9px] font-mono text-crimson/40 tracking-wider uppercase">
+                    ✕ Eliminated
+                  </span>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* UNO call notification */}
       <AnimatePresence>
         {unoCall && (
@@ -505,8 +626,8 @@ function GameContent() {
             >
               <motion.span
                 className="text-3xl"
-                animate={{ rotate: [0, -10, 10, 0] }}
-                transition={{ duration: 0.4, repeat: Infinity }}
+              animate={{ rotate: [0, -10, 10, 0] }}
+              transition={{ type: 'tween', duration: 0.4, repeat: Infinity }}
               >
                 🗣️
               </motion.span>
@@ -524,8 +645,8 @@ function GameContent() {
               </div>
               <motion.span
                 className="text-3xl"
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 0.4, repeat: Infinity }}
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ type: 'tween', duration: 0.4, repeat: Infinity }}
               >
                 🗣️
               </motion.span>

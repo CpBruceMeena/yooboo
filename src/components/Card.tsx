@@ -297,12 +297,45 @@ export default function Card({ type, color, value, state = 'default', onClick, s
         </CardContent>
       )}
 
-      {/* ── Smiley Card ── */}
+      {/* ── Smiley Card — mischievous jester ── */}
       {isSmiley && (
         <CardContent>
-          <span className={`${size === 'sm' ? 'text-lg' : 'text-2xl'} drop-shadow-lg`}>😊</span>
+          {/* Animated jester/trickster icon */}
+          <motion.span
+            className={`${size === 'sm' ? 'text-lg' : 'text-2xl'} drop-shadow-lg relative`}
+            animate={{
+              scale: [1, 1.12, 0.95, 1.08, 1],
+              rotate: [0, -8, 8, -4, 0],
+            }}
+            transition={{
+              duration: 2.5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              times: [0, 0.25, 0.5, 0.75, 1],
+            }}
+          >
+            🃏
+          </motion.span>
+          {/* Mischievous sparkle particles */}
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 0.5, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
+          >
+            {size !== 'sm' && (
+              <>
+                <motion.span className="absolute top-1 left-2 text-[8px]"
+                  animate={{ y: [0, -4, 0], opacity: [0, 1, 0] }}
+                  transition={{ duration: 1.2, repeat: Infinity, delay: 0.3 }}>✨</motion.span>
+                <motion.span className="absolute bottom-3 right-2 text-[8px]"
+                  animate={{ y: [0, -3, 0], opacity: [0, 1, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity, delay: 0.8 }}>✨</motion.span>
+              </>
+            )}
+          </motion.div>
           {size !== 'sm' && (
-            <span className="text-[7px] mt-0.5 font-bold opacity-75 font-mono">SMILEY</span>
+            <span className="text-[7px] mt-0.5 font-bold opacity-75 font-mono text-purple-300">TRICKSTER</span>
           )}
         </CardContent>
       )}

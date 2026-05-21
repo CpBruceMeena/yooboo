@@ -125,9 +125,7 @@ export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, 
         >
           {player.name}
         </motion.span>
-        {!isHorizontal && (
-          <span className="text-[11px] text-textMuted/70">{cardCount} cards</span>
-        )}
+        <span className="text-[11px] text-textMuted/70">{cardCount} cards</span>
         {isUno && (
           <motion.span
             initial={{ scale: 0.5, opacity: 0 }}
