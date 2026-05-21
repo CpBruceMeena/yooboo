@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  uno-nomercy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: uno-nomercy:latest
+    container_name: uno-nomercy
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    # Uncomment to override ports if needed:
+    # environment:
+    #   - PORT=3000
+    #   - NEXTJS_PORT=3001
+    #   - GAME_SERVER_PORT=3002

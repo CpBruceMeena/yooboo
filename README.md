@@ -4,7 +4,20 @@ Real-time multiplayer UNO card game with server-authoritative game engine and So
 
 ## Quick Start
 
-Requires **Node.js 18+**.
+### Local development
+
+Requires **Node.js 18+** and **nginx**.
+
+### Docker (no local dependencies required)
+
+Requires only [Docker](https://docs.docker.com/get-started/get-docker/).
+See [Docker](#docker) section below.
+
+### Install nginx (macOS)
+
+```bash
+brew install nginx
+```
 
 ### 1. Install dependencies
 
@@ -15,7 +28,7 @@ cd server && npm install && cd ..
 
 ### 2. Start the servers
 
-The app runs as 3 processes. The easiest way is using the provided script:
+The app runs as 3 processes behind nginx. The easiest way is using the provided script:
 
 ```bash
 ./run.sh
@@ -24,7 +37,7 @@ The app runs as 3 processes. The easiest way is using the provided script:
 This starts all 3 processes in tmux panes (or background if tmux unavailable):
 | Process | Port | Description |
 |---|---|---|
-| Reverse Proxy | 3000 | Entry point. Proxies Socket.IO to game server, HTTP to Next.js |
+| nginx | 3000 | Entry point. Proxies Socket.IO to game server, HTTP to Next.js |
 | Next.js | 3001 | Frontend (internal, not directly accessed) |
 | Game Server | 3002 | Socket.IO game engine at `/api/socketio` |
 
@@ -33,13 +46,13 @@ Open `http://localhost:3000` to play.
 ### 3. Manual start (3 terminals)
 
 ```bash
-# Terminal 1: Game server (Socket.IO)
-cd server && npx tsx gameEntry.ts
+# Terminal 1: nginx reverse proxy
+nginx -c $(pwd)/nginx.conf -p $(pwd)
 
 # Terminal 2: Next.js frontend
 npm run dev
 
-# Terminal 3: Reverse proxy
+# Terminal 3: Game server (Socket.IO)
 cd server && npx tsx index.ts
 ```
 
@@ -60,14 +73,73 @@ Open `http://localhost:3000` in two+ browser windows to play.
 Or manually:
 
 ```bash
+nginx -s stop
 pkill -f "tsx"
 pkill -f "next dev"
 ```
 
+## Docker
+
+You can run the entire stack (nginx + Next.js + game server) in a single container with Docker.
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-started/get-docker/) installed and running
+
+### Build & Run
+
+```bash
+# Build & start in one command:
+docker compose up --build
+
+# Or separately:
+docker compose build   # Build image (2-3 min on first run)
+docker compose up      # Start & follow logs
+
+# Run in background:
+docker compose up -d
+```
+
+Open `http://localhost:3000` to play.
+
+### View logs
+
+```bash
+docker compose logs -f
+```
+
+### Stop
+
+```bash
+docker compose down
+```
+
+### How it works
+
+The Docker image uses a 3-stage build:
+
+| Stage | Purpose |
+|---|---|
+| `frontend-builder` | Installs root dependencies & runs `next build` |
+| `server-deps` | Installs server production dependencies |
+| `runner` | Combines everything + nginx into a runtime image |
+
+Inside the container, the same 3-process architecture runs:
+
+| Service | Port | Role |
+|---|---|---|
+| nginx | 3000 | Entry point (exposed to host) |
+| Next.js | 3001 | Frontend (internal) |
+| Game Server | 3002 | Socket.IO engine (internal) |
+
+> **Note:** If you have local servers running (`./run.sh start`), stop them first with `./run.sh stop` before starting Docker — both use port 3000.
+
 ## Architecture
 
+
+
 ```
-Client (Next.js + Tailwind v4) -------- HTTPS -------> Reverse Proxy (:3000)
+Client (Next.js + Tailwind v4) -------- HTTPS -------> nginx (:3000)
                                                             │
                                             ┌───────────────┼───────────────┐
                                             ▼                               ▼
@@ -81,7 +153,7 @@ Client (Next.js + Tailwind v4) -------- HTTPS -------> Reverse Proxy (:3000)
                                       - Elimination/win checks
 ```
 
-- **Reverse Proxy** (port 3000, `http-proxy`): Entry point. Proxies Socket.IO paths to the game server and everything else to Next.js. Also handles WebSocket upgrades.
+- **nginx** (port 3000, reverse proxy): Entry point. Proxies `/api/socketio` to the game server and everything else (including WebSocket upgrades for Next.js HMR) to port 3001.
 - **Game Server** (port 3002, Socket.IO): Owns all game state and validates every move.
 - **Next.js** (port 3001, internal): Renders the frontend UI.
 - **No database needed** — rooms are in-memory (ephemeral)
@@ -109,33 +181,19 @@ Client (Next.js + Tailwind v4) -------- HTTPS -------> Reverse Proxy (:3000)
 ## Project Structure
 
 ```
+nginx.conf         nginx reverse proxy config (port 3000)
 src/
   lib/game/       Game engine (pure TS, shared with server)
   hooks/          React hooks (useWebRTC, useGame)
   components/     UI components
   app/            Next.js pages (lobby + game)
 server/
-  index.ts        HTTP + Socket.IO server entry
+  index.ts        Game server entry (port 3002, Socket.IO)
   gameServer.ts   Authoritative game logic
+scripts/
+  smoke-test.mjs  Automated smoke test
 ```
 
-## Current Status & Next Steps
+## Rules
 
-- Status: Work in progress — an automated agent file `.agent.md` was added to help with fixes.
-- Goal: reproduce runtime/build errors locally, fix root causes, then verify with tests or a dev run.
-
-Recommended quick reproduction steps:
-
-```bash
-# From repo root
-npm install
-cd server && npm install
-
-# Start server (terminal 1)
-cd server && npx tsx index.ts
-
-# Start client (terminal 2)
-npm run dev
-```
-
-If you see errors while running, capture the full terminal output and share it with the agent.
+See [`RULES.md`](./RULES.md) for the complete game rules including card types, stacking mechanics, special cards (Smiley 😊, +4 Reverse, +6, +10), elimination, and winning conditions.

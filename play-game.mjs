@@ -1,6 +1,8 @@
 import { io } from "socket.io-client";
 
-const SERVER_URL = "http://localhost:3001";
+// Game server runs on port 3002 (proxied through nginx on port 3000)
+// For direct testing, connect to the game server port
+const SERVER_URL = "http://localhost:3002";
 const ROOM = "AUTO1";
 
 // Track state for both players

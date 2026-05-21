@@ -65,14 +65,18 @@ export function useWebRTC(): WebRTCReturn {
 
     const socket = io(explicitUrl || undefined, {
       path: '/api/socketio',
-      // Use polling-first, then upgrade to WebSocket once connected.
-      // http-proxy on the combined server handles WebSocket upgrades for Socket.IO paths.
+      // Try WebSocket first for lower latency; fall back to long-polling if blocked.
+      // nginx on port 3000 handles WebSocket upgrades for Socket.IO paths.
+      // Polling first for reliability through nginx/ngrok proxy chains;
+      // upgrades to WebSocket once the connection is established.
       transports: ['polling', 'websocket'],
-      timeout: 20000,
-      reconnectionAttempts: 15,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
+      timeout: 30000,
+      reconnectionAttempts: 20,
+      reconnectionDelay: 500,
+      reconnectionDelayMax: 3000,
       reconnection: true,
+      // Randomization prevents reconnection thundering herd
+      randomizationFactor: 0.3,
       // Force new connection to avoid stale sessions
       forceNew: true,
     });
