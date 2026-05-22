@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+server/node_modules/
+
+# Next.js build output
+.next/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# OS files
+.DS_Store
+
+# Environment files
+.env*
+.env
+
+# Logs
+*.log
+.logs/
+
+# PID files
+.run.pid
+
+# Design docs & temp files (not needed in Docker)
+todo.txt
+card-design.md
+HOME_DESIGN.md
+ISSUE_REPORT.txt
+uno_no_mercy_uiux_design_system_spec.md
+uno-nomercy-homepage-design.md
+code-review-graph.html
+Gemini_Generated_Image_*.png
+
+# Development configs
+eslint.config.mjs
+postcss.config.mjs
+play-game.mjs
+run.sh
+nginx.conf

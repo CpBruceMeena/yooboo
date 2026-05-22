@@ -406,7 +406,7 @@ function GameContent() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 flex flex-col h-screen"
+      className="h-screen flex flex-col overflow-hidden min-h-0"
     >        <TopBar
           roomId={actualRoomId}
           currentPlayer={currentPlayerName}

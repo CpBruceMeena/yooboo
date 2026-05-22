@@ -120,7 +120,7 @@ The deck consists of **152 cards** total:
 - Drawing continues **until they draw the chosen color card**
 - After each card drawn: if total hand is **≥25 cards**, that player is eliminated immediately
 - If the draw pile empties without matching, drawing stops
-- **Cannot be stacked**
+- **Stackable**: Another Smiley can be played on top (passes the draw to the next player). Only Smiley cards can be played over an unresolved Smiley — color cards, specials (+10, +6), and wilds are blocked until the Smiley resolves.
 
 ## 5. Stacking Rules
 
@@ -134,7 +134,7 @@ The deck consists of **152 cards** total:
 - Wild +6 can be stacked only on Wild +6
 - Wild +10 can be stacked only on Wild +10
 - +4 Reverse can be stacked only on +4 Reverse
-- Smiley cannot be stacked
+- **Smiley stacks on Smiley**: Only Smiley cards can be played over an unresolved Smiley. Color cards, +10, +6, +4, +2, wilds are all blocked until the Smiley resolves by drawing.
 
 ### Illegal Stacking
 - A Reverse cannot be stacked on a +4 Reverse (or vice versa)
@@ -201,8 +201,8 @@ The deck consists of **152 cards** total:
 | 7 | **Wild +6** | Wild | Next draws 6, pick color | Yes (+6) |
 | 8 | **Wild +10 (MAX)** | Wild | Next draws 10, pick color | Yes (+10) |
 | 9 | **Discard All** | Red/Yellow/Green/Blue | Card's color is active, optionally discard cards of that color | No |
-| 10 | **Smiley 😊** | Wild | Pick color, next draws until they hit it | No |
+| 10 | **Smiley 😊** | Wild | Pick color, next draws until they hit it | Yes (Smiley) |
 
 ---
 
-*Last updated: 2025*
+*Last updated: 2026*
