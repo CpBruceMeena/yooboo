@@ -7,6 +7,7 @@ LOG_DIR="$ROOT_DIR/.logs"
 PID_FILE="$ROOT_DIR/.run.pid"
 NGINX_CONF="$ROOT_DIR/nginx.conf"
 NGINX_PID_FILE="/tmp/nginx-uno-nomercy.pid"
+NEXT_BUILD_ID_FILE="$ROOT_DIR/.next/BUILD_ID"
 
 # ─── Colors ──────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -17,8 +18,18 @@ NC='\033[0m'
 
 # ─── Determine Next.js mode ─────────────────────────────────────
 next_cmd() {
-  # Use production mode if PRODUCTION=1 is set, or if .next build exists
-  if [ "${PRODUCTION:-0}" = "1" ] || [ -d "$ROOT_DIR/.next" ]; then
+  # Only use production mode when PRODUCTION=1 is explicitly set.
+  # Otherwise always use dev mode — this ensures source code changes
+  # are reflected instantly without needing a rebuild.
+  if [ "${PRODUCTION:-0}" = "1" ]; then
+    # If .next doesn't exist, auto-build
+    if [ ! -d "$ROOT_DIR/.next" ]; then
+      echo "  ${YELLOW}Building Next.js for production...${NC}" >&2
+      (cd "$ROOT_DIR" && npx next build) || {
+        echo -e "  ${RED}✕${NC} Production build failed" >&2
+        return 1
+      }
+    fi
     echo "npx next start -p 3001"
   else
     echo "npx next dev -p 3001"
@@ -26,11 +37,35 @@ next_cmd() {
 }
 
 next_mode_label() {
-  if [ "${PRODUCTION:-0}" = "1" ] || [ -d "$ROOT_DIR/.next" ]; then
+  if [ "${PRODUCTION:-0}" = "1" ]; then
     echo "production"
   else
     echo "dev"
   fi
+}
+
+# ─── Check if the .next build is stale ──────────────────────────
+check_stale_build() {
+  if [ ! -f "$NEXT_BUILD_ID_FILE" ]; then
+    return 1  # No build exists
+  fi
+
+  # Find the newest source file (TS/TSX)
+  local newest_source
+  newest_source=$(find "$ROOT_DIR/src" "$ROOT_DIR/server" -name '*.ts' -o -name '*.tsx' 2>/dev/null | xargs ls -t 2>/dev/null | head -1)
+  if [ -z "$newest_source" ]; then
+    return 1
+  fi
+
+  local build_time
+  build_time=$(stat -f "%m" "$NEXT_BUILD_ID_FILE" 2>/dev/null || echo "0")
+  local source_time
+  source_time=$(stat -f "%m" "$newest_source" 2>/dev/null || echo "1")
+
+  if [ "$source_time" -gt "$build_time" ]; then
+    return 0  # Build is stale
+  fi
+  return 1  # Build is fresh
 }
 
 # ─── Help ─────────────────────────────────────────────────────────
@@ -44,6 +79,10 @@ usage() {
   echo "  status      Show server status"
   echo "  logs        Tail logs from all servers"
   echo "  help        Show this help"
+  echo ""
+  echo "Environment:"
+  echo "  PRODUCTION=1    Run Next.js in production mode (requires 'npx next build' first)"
+  echo "  ALLOWED_ORIGINS  Comma-separated origins for dev HMR (ngrok/custom domains)"
   exit 0
 }
 
@@ -246,6 +285,24 @@ install_deps() {
   fi
 }
 
+# ─── Wait for a port to be listening ─────────────────────────────
+wait_for_port() {
+  local port=$1
+  local label=$2
+  local timeout=${3:-15}
+  local waited=0
+  while [ $waited -lt $timeout ]; do
+    if lsof -i ":$port" -P 2>/dev/null | grep -q LISTEN; then
+      echo -e "  ${GREEN}✓${NC} $label is ready on port $port"
+      return 0
+    fi
+    sleep 1
+    waited=$((waited + 1))
+  done
+  echo -e "  ${RED}✕${NC} $label did not start on port $port within ${timeout}s"
+  return 1
+}
+
 # ─── Start (tmux) ────────────────────────────────────────────────
 start_tmux() {
   echo -e "${CYAN}Starting in tmux...${NC}"
@@ -256,24 +313,40 @@ start_tmux() {
   # Give ports a moment to free
   sleep 1
 
+  # Validate nginx config BEFORE starting anything
+  echo "  Validating nginx config..."
+  if ! nginx -t -c "$NGINX_CONF" 2>&1; then
+    echo -e "  ${RED}✕${NC} nginx config test failed. Check nginx.conf"
+    return 1
+  fi
+  echo -e "  ${GREEN}✓${NC} nginx config OK"
+
   # Create a 3-pane tmux session
   tmux new-session -d -s uno-nomercy -n "uno-nomercy"
 
-  # Pane 0: nginx (top-left)
+  # Pane 0: nginx (top-left) — start first
   tmux send-keys -t uno-nomercy "cd $ROOT_DIR && nginx -c '$NGINX_CONF' -p '$ROOT_DIR' -g 'daemon off;'" Enter
+
+  # Wait for nginx to be listening on port 3000
+  wait_for_port 3000 "nginx" 10
 
   # Pane 1: Game server (top-right)
   tmux split-window -h -t uno-nomercy
   tmux send-keys -t uno-nomercy "cd $SERVER_DIR && npx tsx index.ts" Enter
 
+  # Wait for game server to be listening on port 3002
+  wait_for_port 3002 "Game Server" 15
+
   # Pane 2: Next.js (bottom, full width)
+  local next_cmd_val
+  next_cmd_val=$(next_cmd) || return 1  # Will auto-build if PRODUCTION=1 and no .next
   local next_mode
   next_mode=$(next_mode_label)
   tmux split-window -v -t uno-nomercy
   if [ "$next_mode" = "dev" ] && [ -n "${ALLOWED_ORIGINS:-}" ]; then
-    tmux send-keys -t uno-nomercy "cd $ROOT_DIR && ALLOWED_ORIGINS='$ALLOWED_ORIGINS' $(next_cmd)" Enter
+    tmux send-keys -t uno-nomercy "cd $ROOT_DIR && ALLOWED_ORIGINS='$ALLOWED_ORIGINS' $next_cmd_val" Enter
   else
-    tmux send-keys -t uno-nomercy "cd $ROOT_DIR && $(next_cmd)" Enter
+    tmux send-keys -t uno-nomercy "cd $ROOT_DIR && $next_cmd_val" Enter
   fi
 
   # Layout: two panes on top, one on bottom
@@ -309,12 +382,14 @@ start_background() {
 
   # Start Next.js client on port 3001
   cd "$ROOT_DIR"
+  local next_cmd_val
+  next_cmd_val=$(next_cmd) || return 1  # Will auto-build if PRODUCTION=1 and no .next
   local next_mode
   next_mode=$(next_mode_label)
   if [ "$next_mode" = "dev" ] && [ -n "${ALLOWED_ORIGINS:-}" ]; then
-    ALLOWED_ORIGINS="$ALLOWED_ORIGINS" nohup $(next_cmd) > "$LOG_DIR/client.log" 2>&1 &
+    ALLOWED_ORIGINS="$ALLOWED_ORIGINS" nohup $next_cmd_val > "$LOG_DIR/client.log" 2>&1 &
   else
-    nohup $(next_cmd) > "$LOG_DIR/client.log" 2>&1 &
+    nohup $next_cmd_val > "$LOG_DIR/client.log" 2>&1 &
   fi
   local client_pid=$!
   echo "$client_pid" >> "$PID_FILE"
@@ -360,15 +435,22 @@ main() {
       local mode
       mode=$(next_mode_label)
       echo "  Mode: $mode"
-      if [ "$mode" = "dev" ] && [ ! -d "$ROOT_DIR/.next" ]; then
-        echo -e "  ${YELLOW}Tip: run 'npx next build' for production mode (avoids HMR issues with ngrok)${NC}"
+
+      # Check for stale build
+      if [ "$mode" = "production" ]; then
+        if check_stale_build; then
+          echo -e "  ${YELLOW}⚠ Stale production build detected! Source files are newer than .next/${NC}"
+          echo -e "  ${YELLOW}  Run 'npx next build' to rebuild, or use dev mode (unset PRODUCTION)${NC}"
+        fi
+      else
+        if [ -d "$ROOT_DIR/.next" ]; then
+          if check_stale_build; then
+            echo -e "  ${YELLOW}⚠ Stale .next/ build ignored — using dev mode (source changes reflected instantly)${NC}"
+          fi
+        fi
         if [ -n "${ALLOWED_ORIGINS:-}" ]; then
           echo -e "  ${CYAN}ALLOWED_ORIGINS=${ALLOWED_ORIGINS}${NC}"
-        else
-          echo -e "  ${YELLOW}  or set ALLOWED_ORIGINS=your-domain for ngrok dev HMR access${NC}"
         fi
-      elif [ -n "${ALLOWED_ORIGINS:-}" ]; then
-        echo -e "  ${CYAN}ALLOWED_ORIGINS=${ALLOWED_ORIGINS}${NC}"
       fi
       echo ""
 
@@ -418,6 +500,10 @@ main() {
       ;;
     help|--help|-h)
       usage
+      ;;
+    build)
+      echo -e "${CYAN}Building Next.js for production...${NC}"
+      (cd "$ROOT_DIR" && npx next build)
       ;;
     *)
       echo -e "${RED}Unknown command: $1${NC}"

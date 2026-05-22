@@ -158,6 +158,8 @@ export default function RightPanel({
   chatMessages = [],
   playerId, disabled, hasDrawn, unoEligible
 }: RightPanelProps) {
+  const [emotesExpanded, setEmotesExpanded] = useState(false);
+
   return (
     <div className="w-60 bg-bgSecondary/90 border-l border-gold/10 flex flex-col h-full">
       {/* Top section — actions + emotes (tight padding) */}
@@ -176,8 +178,38 @@ export default function RightPanel({
         </div>
         <div>
           <div className="h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent mb-2" />
-          <h3 className="text-[10px] font-mono text-creamMuted/50 uppercase tracking-[0.25em] mb-1.5">Emotes</h3>
-          <EmotePanel onEmote={onEmote} />
+          {/* Emotes toggle header */}
+          <motion.button
+            onClick={() => setEmotesExpanded(!emotesExpanded)}
+            className="w-full flex items-center justify-between cursor-pointer group mb-1.5"
+            whileTap={{ scale: 0.98 }}
+          >
+            <h3 className="text-[10px] font-mono text-creamMuted/50 uppercase tracking-[0.25em]">
+              Emotes
+            </h3>
+            <motion.svg
+              animate={{ rotate: emotesExpanded ? 180 : 0 }}
+              transition={{ duration: 0.25, ease: 'easeInOut' }}
+              className="w-3 h-3 text-creamMuted/40 group-hover:text-creamMuted/70 transition-colors"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </motion.svg>
+          </motion.button>
+          {/* Emotes panel — collapsible with slide animation */}
+          <motion.div
+            initial={false}
+            animate={{
+              height: emotesExpanded ? 'auto' : 0,
+              opacity: emotesExpanded ? 1 : 0,
+            }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <EmotePanel onEmote={onEmote} />
+          </motion.div>
         </div>
       </div>
 

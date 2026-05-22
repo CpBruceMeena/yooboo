@@ -34,15 +34,29 @@ The app runs as 3 processes behind nginx. The easiest way is using the provided 
 ./run.sh
 ```
 
-This starts both processes in tmux panes (or background if tmux unavailable):
+This starts all 3 processes in tmux panes (or background if tmux unavailable):
+
 | Process | Port | Description |
 |---|---|---|
-| nginx | 3000 | Entry point. Proxies Socket.IO to game server, HTTP to Next.js |
-| Next.js | 3001 | Frontend (internal, not directly accessed) |
+| nginx | 3000 | Entry point. Proxies Socket.IO to game server, HTTP + HMR to Next.js |
+| Next.js | 3001 | Frontend (internal, dev mode with hot reload) |
+| Game Server | 3002 | Socket.IO game engine (internal) |
 
-Open `http://localhost:3000` to play.
+By default, Next.js runs in **dev mode** (`next dev`) — source changes are reflected instantly.
+To run in **production mode** (no hot reload, serves pre-built bundle):
 
-### 3. Manual start (2 terminals)
+```bash
+PRODUCTION=1 ./run.sh
+# or:
+./run.sh build   # Build production bundle
+PRODUCTION=1 ./run.sh
+```
+
+> **Note:** If a stale `.next/` build directory exists from a previous production run,
+> the script now warns you and uses dev mode anyway. No more stale builds silently
+> serving old code!
+
+### 3. Manual start
 
 ```bash
 # Terminal 1: nginx reverse proxy
@@ -63,7 +77,7 @@ Open `http://localhost:3000` in two+ browser windows to play.
 2. Enter a name and the same room code (or create from one window and join with the code in the other)
 3. Click **Start Game** once everyone has joined
 
-### Stop the servers
+### Stop
 
 ```bash
 ./run.sh stop
@@ -74,8 +88,26 @@ Or manually:
 ```bash
 nginx -s stop
 pkill -f "tsx"
-pkill -f "next dev"
+pkill -f "next"
 ```
+
+### Commands
+
+| Command | Description |
+|---|---|
+| `./run.sh start` | Start all servers (default) |
+| `./run.sh stop` | Stop all servers |
+| `./run.sh restart` | Stop then start |
+| `./run.sh status` | Show running services |
+| `./run.sh logs` | Tail logs from all processes |
+| `./run.sh build` | Build Next.js production bundle |
+
+### Environment Variables
+
+| Variable | Description |
+|---|---|
+| `PRODUCTION=1` | Run Next.js in production mode (requires build first, or auto-builds) |
+| `ALLOWED_ORIGINS` | Comma-separated origins for dev HMR WebSocket (e.g., ngrok URLs) |
 
 ## Docker
 
@@ -135,8 +167,6 @@ Inside the container, the same 3-process architecture runs:
 
 ## Architecture
 
-
-
 ```
 Client (Next.js + Tailwind v4) -------- HTTPS -------> nginx (:3000)
                                                             │
@@ -156,22 +186,29 @@ Client (Next.js + Tailwind v4) -------- HTTPS -------> nginx (:3000)
 - **Next.js** (port 3001, internal): Renders the frontend UI.
 - **No database needed** — rooms are in-memory (ephemeral)
 
+### Socket.IO Configuration
+
+- **Transport**: WebSocket-first (`['websocket', 'polling']`) — faster handshake, falls back to polling if blocked
+- **Path**: `/api/socketio` — nginx proxies this subpath to the game server
+- **Timeout**: 15s initial connection, 10 reconnection attempts
+- **No `forceNew`**: Avoids React Strict Mode double-mount interference
+
 ## Card Types
 
 | Card | Effect |
 |---|---|
-| Number | Standard play |
-| Reverse | Flip direction (2 players = skip) |
+| Number | Standard play, matches by value or color |
+| Reverse | Flip direction (2 players = skip, turn stays) |
 | +2 / +4 / +6 / +10 | Add to draw stack |
 | Reverse4 | Flip direction + stack +4 |
 | Skip Everyone | Current player goes again |
 | Discard All | Remove all cards of chosen color |
-| Smiley | Draw until chosen color appears |
+| Smiley 😊 | Stackable — next player plays smiley or draws until chosen color |
 
 ## Stack Rules
 
 - Same card type stacks (+4→+4, +6→+6, etc.)
-- Smiley can be played during stack (adds 0, passes stack forward)
+- **Smiley is stackable**: only smiley can be played on an unresolved smiley; color cards, +10, +6, etc. are blocked. Once resolved, any matching card can be played on the new top.
 - Skip Everyone / Discard All cannot be played during stack
 - If you can't stack → draw the full amount
 - ≥25 cards = eliminated
@@ -180,6 +217,7 @@ Client (Next.js + Tailwind v4) -------- HTTPS -------> nginx (:3000)
 
 ```
 nginx.conf         nginx reverse proxy config (port 3000)
+run.sh             Startup script (tmux/background, stale build detection)
 src/
   lib/game/       Game engine (pure TS, shared with server)
   hooks/          React hooks (useWebRTC, useGame)

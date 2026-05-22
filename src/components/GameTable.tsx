@@ -56,6 +56,7 @@ export default function GameTable({
         discardTop,
         gameState.pendingDraw,
         gameState.pendingType,
+        gameState.smileyActive,
       )
     : [];
 

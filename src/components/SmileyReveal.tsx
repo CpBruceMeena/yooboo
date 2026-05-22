@@ -182,8 +182,7 @@ export default function SmileyReveal({
             }`}
           >
             {eliminated && '☠ ELIMINATION'}
-            {matched && '✓ MATCH FOUND'}
-            {!eliminated && !matched && '◈ SMILEY DRAW'}
+            {!eliminated && '◈ SMILEY DRAW'}
           </motion.p>
 
           {/* Player name with gold underline */}
@@ -219,7 +218,7 @@ export default function SmileyReveal({
               className="px-5 py-2 rounded-full bg-gold/10 border border-gold/20"
             >
               <span className="text-goldGlow text-xs font-mono">
-                ✓ Match found! All drawn cards secured.
+                ◈ Cards secured.
               </span>
             </motion.div>
           )}

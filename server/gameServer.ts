@@ -317,7 +317,7 @@ export function setupGameServer(io: SocketIOServer) {
       } else if (effects.includes('stack')) {
         nextTurn(state);
       } else if (effects.includes('skip_everyone')) {
-        // Turn stays
+        // Turn stays with current player (they get an extra action)
       } else if (effects.includes('discard_all')) {
         // If playing discardAll on top of another discardAll, advance turn immediately
         // (client won't show discard modal, so no discard_color event will follow)
@@ -325,21 +325,28 @@ export function setupGameServer(io: SocketIOServer) {
         if (prevTop?.type === 'discardAll') {
           nextTurn(state);
         }
-      } else if (effects.includes('skip')) {
-        nextTurn(state);
+      } else if (effects.includes('reverse')) {
+        // With 2 active players, reverse acts as a skip (turn stays with same player)
+        const activePlayers = state.players.filter(p => !p.isEliminated);
+        if (activePlayers.length > 2) {
+          nextTurn(state);
+        }
+        // For 2 players: no nextTurn — reverse = skip, turn stays
       } else {
-        if (!effects.includes('reverse')) {
+        // Normal card — advance the turn
+        // BUT if skipEveryoneActive is true, let the block below handle it
+        // to avoid double-advancing.
+        if (!state.skipEveryoneActive) {
           nextTurn(state);
         }
       }
 
       // If Skip Everyone was active and this card isn't another Skip Everyone,
       // advance the turn — player only gets one action after a Skip All.
-      // Only advance if no other effect already called nextTurn (stack, smiley, skip)
-      // or if discardAll (turn advances later via discard_color event).
+      // Only advance if no other effect already called nextTurn.
       if (state.skipEveryoneActive && !effects.includes('skip_everyone')) {
         state.skipEveryoneActive = false;
-        const turnAlreadyHandled = effects.includes('stack') || effects.includes('smiley') || effects.includes('skip');
+        const turnAlreadyHandled = effects.includes('stack') || effects.includes('smiley') || effects.includes('skip') || effects.includes('reverse');
         if (!turnAlreadyHandled && !effects.includes('discard_all')) {
           nextTurn(state);
         }

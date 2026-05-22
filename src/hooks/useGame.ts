@@ -54,6 +54,9 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
     const card = localPlayer.hand.find((c) => c.id === cardId);
     if (!card) return;
 
+    // If smiley is active, only smiley cards can be interacted with
+    if (gameState.smileyActive && card.type !== 'smiley') return;
+
     if (selectedCardId === cardId) {
       if (card.type === 'smiley' || card.color === 'wild') {
         setPendingCardId(cardId);
