@@ -34,14 +34,17 @@ function ChatMessageRow({ msg, isOwn }: { msg: ChatMessage; isOwn: boolean }) {
   const isEmoji = isSingleEmoji(msg.message);
 
   if (isEmoji) {
-    // Emoji-only message — larger, pop-in animation
+    // Emoji-only message — larger, pop-in animation, with player name above
     return (
       <motion.div
         initial={{ opacity: 0, scale: 0.3, y: 20, rotate: -15 }}
         animate={{ opacity: 1, scale: 1, y: 0, rotate: 0 }}
         transition={{ type: 'spring', stiffness: 350, damping: 12, mass: 0.8 }}
-        className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
+        className={`flex flex-col items-center ${isOwn ? 'items-end' : 'items-start'}`}
       >
+        <span className={`text-[9px] font-mono font-semibold mb-0.5 px-1 ${isOwn ? 'text-goldGlow text-right' : 'text-gold/60 text-left'}`}>
+          {msg.playerName}
+        </span>
         <div className="relative">
           {/* Glow ring behind emoji */}
           <motion.div
@@ -53,10 +56,7 @@ function ChatMessageRow({ msg, isOwn }: { msg: ChatMessage; isOwn: boolean }) {
               background: 'radial-gradient(circle, rgba(232,184,75,0.2) 0%, transparent 70%)',
             }}
           />
-          <span
-            className="relative text-2xl drop-shadow-lg cursor-default"
-            title={msg.playerName}
-          >
+          <span className="relative text-2xl drop-shadow-lg cursor-default">
             {msg.message}
           </span>
         </div>
@@ -107,7 +107,7 @@ function ChatBox({ messages, onSend, playerId }: { messages: ChatMessage[]; onSe
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="flex flex-col h-full">
       {/* Messages area — scrollable, fills available space */}
       <div className="flex-1 overflow-y-auto scrollbar-thin space-y-1 pr-1 mb-2 min-h-0">
         {messages.length === 0 ? (
@@ -161,9 +161,9 @@ export default function RightPanel({
   const [emotesExpanded, setEmotesExpanded] = useState(false);
 
   return (
-    <div className="w-60 bg-bgSecondary/90 border-l border-gold/10 flex flex-col h-full">
-      {/* Top section — actions + emotes (tight padding) */}
-      <div className="shrink-0 px-3 pt-2.5 pb-3 border-b border-gold/10">
+    <div className="w-60 bg-bgSecondary/90 border-l border-gold/10 flex flex-col h-full overflow-hidden">
+      {/* Top section — actions + emotes (tight padding, max-h limits emote growth) */}
+      <div className="shrink-0 px-3 pt-2.5 pb-3 border-b border-gold/10 max-h-[45vh] overflow-y-auto scrollbar-thin">
         <div className="mb-3">
           <div className="h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent mb-2" />
           <h3 className="text-[10px] font-mono text-creamMuted/50 uppercase tracking-[0.25em] mb-1.5">Actions</h3>
@@ -213,11 +213,9 @@ export default function RightPanel({
         </div>
       </div>
 
-      {/* Chat — simple vertical list below emotes, fills remaining space */}
-      <div className="flex-1 flex flex-col min-h-0 px-3 pb-3">
-        <div className="flex-1 min-h-0">
-          <ChatBox messages={chatMessages} onSend={onSendChat} playerId={playerId} />
-        </div>
+      {/* Chat — fills remaining space with scroll, never grows the panel */}
+      <div className="flex-1 min-h-0 px-3 pb-3 pt-1.5 flex flex-col overflow-hidden">
+        <ChatBox messages={chatMessages} onSend={onSendChat} playerId={playerId} />
       </div>
     </div>
   );
