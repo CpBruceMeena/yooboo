@@ -178,11 +178,10 @@ export default function SmileyReveal({
         >
           <motion.p
             className={`text-sm font-mono tracking-[0.25em] mb-2 ${
-              eliminated ? 'text-crimson' : matched ? 'text-goldGlow' : 'text-creamMuted'
+              allDone && eliminated ? 'text-crimson' : 'text-creamMuted'
             }`}
           >
-            {eliminated && '☠ ELIMINATION'}
-            {!eliminated && '◈ SMILEY DRAW'}
+            {allDone && eliminated ? '☠ ELIMINATION' : '◈ SMILEY DRAW'}
           </motion.p>
 
           {/* Player name with gold underline */}

@@ -301,6 +301,7 @@ export function useWebRTC(): WebRTCReturn {
 
   const clearSmileyReveal = useCallback(() => {
     setSmileyReveal(null);
+    socketRef.current?.emit('smiley_done');
   }, []);
 
   return {
