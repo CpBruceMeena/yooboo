@@ -21,6 +21,7 @@ interface Room {
   state: GameState | null;
   clients: Map<string, string>;
   lobbyPlayers: LobbyPlayer[];
+  pendingSmileyElimination: string | null;
 }
 
 const rooms = new Map<string, Room>();
@@ -80,7 +81,7 @@ export function setupGameServer(io: SocketIOServer) {
 
       let room = rooms.get(roomId);
       if (!room) {
-        room = { state: null, clients: new Map(), lobbyPlayers: [] };
+        room = { state: null, clients: new Map(), lobbyPlayers: [], pendingSmileyElimination: null };
         rooms.set(roomId, room);
       }
 
@@ -414,16 +415,16 @@ export function setupGameServer(io: SocketIOServer) {
         });
 
         if (result.eliminated) {
-          state.discardPile.push(...player.hand);
-          player.hand = [];
-          io.to(info.roomId).emit('player_eliminated', { playerId: player.id });
-        }
-
-        const winner = checkWinner(state);
-        if (winner) {
-          io.to(info.roomId).emit('game_won', { winnerId: winner });
+          // Defer elimination until smiley reveal animation completes
+          player.isEliminated = false;
+          room.pendingSmileyElimination = player.id;
         } else {
-          nextTurn(state);
+          const winner = checkWinner(state);
+          if (winner) {
+            io.to(info.roomId).emit('game_won', { winnerId: winner });
+          } else {
+            nextTurn(state);
+          }
         }
       } else {
         // Normal draw: player draws 1 card and keeps their turn to play any card
@@ -547,10 +548,39 @@ export function setupGameServer(io: SocketIOServer) {
         });
 
         if (result.eliminated) {
+          // Defer elimination until smiley reveal animation completes
+          player.isEliminated = false;
+          room.pendingSmileyElimination = player.id;
+        } else {
+          const winner = checkWinner(state);
+          if (winner) {
+            io.to(info.roomId).emit('game_won', { winnerId: winner });
+          } else {
+            nextTurn(state);
+          }
+        }
+      } else {
+        nextTurn(state);
+      }
+      broadcastState(room, io);
+    });
+
+    socket.on('smiley_done', () => {
+      const info = clientMap.get(socket.id);
+      if (!info) return;
+      const room = rooms.get(info.roomId);
+      if (!room || !room.state) return;
+      const state = room.state;
+
+      if (room.pendingSmileyElimination) {
+        const player = state.players.find(p => p.id === room.pendingSmileyElimination);
+        if (player) {
+          player.isEliminated = true;
           state.discardPile.push(...player.hand);
           player.hand = [];
           io.to(info.roomId).emit('player_eliminated', { playerId: player.id });
         }
+        room.pendingSmileyElimination = null;
 
         const winner = checkWinner(state);
         if (winner) {
@@ -558,10 +588,9 @@ export function setupGameServer(io: SocketIOServer) {
         } else {
           nextTurn(state);
         }
-      } else {
-        nextTurn(state);
+
+        broadcastState(room, io);
       }
-      broadcastState(room, io);
     });
 
     socket.on('leave_room', () => {
