@@ -1,6 +1,6 @@
 <div align="center">
   <br>
-  <img src="public/images/yooboo-logo.svg" alt="YOOBOO" width="120" height="120">
+  <img src="public/images/yooboo-logo.png" alt="YOOBOO" width="240">
   <br>
   <h1 align="center">YOOBOO</h1>
   <p align="center">
@@ -13,15 +13,9 @@
     <a href="https://github.com/CpBruceMeena/yooboo"><strong>github.com/CpBruceMeena/yooboo</strong></a>
   </p>
   <br>
+  <video src="public/images/yooboo-animation.mp4" width="480" autoplay loop muted playsinline poster="public/images/yooboo-logo.png"></video>
+  <br>
 </div>
-
-<p align="center">
-  <img src="./public/images/game-play-screenshot.jpg" alt="YOOBOO Gameplay" width="45%" />
-  &nbsp;
-  <img src="./public/images/game-lobby-screenshot.png" alt="YOOBOO Lobby" width="45%" />
-</p>
-
-<br>
 
 **YOOBOO** is a real-time multiplayer shedding-type card game with stacking penalties, special cards, and elimination. Last player standing with cards in hand wins — or the first to empty their hand.
 
@@ -260,6 +254,4 @@ See [`RULES.md`](./RULES.md) for the complete game rules including card types, s
 
 ## Disclaimer
 
-YOOBOO is an independent card game inspired by the shedding-type card game genre.
-YOOBOO is not affiliated with, endorsed by, or connected to Mattel, Inc.
-UNO® is a registered trademark of Mattel, Inc.
+YOOBOO is an independent game and is not affiliated with any person or organization.
