@@ -7,7 +7,17 @@ export function nextTurn(state: GameState): void {
   let next = state.currentPlayerIndex + state.direction;
   const len = state.players.length;
 
+  // Safety: prevent infinite loop if all players somehow become eliminated
+  let safety = 0;
+  const maxIterations = len * 2;
+
   while (true) {
+    if (++safety > maxIterations) {
+      // Fallback: move to the first active player
+      const fallback = state.players.findIndex((p) => !p.isEliminated);
+      if (fallback >= 0) state.currentPlayerIndex = fallback;
+      return;
+    }
     if (next < 0) next = len - 1;
     if (next >= len) next = 0;
     if (!state.players[next].isEliminated) break;

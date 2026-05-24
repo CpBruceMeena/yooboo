@@ -10,7 +10,11 @@ export function resolveSmileyDraw(
   const player = state.players[playerIndex];
   if (!player || player.isEliminated) return { drawn, matched: false, eliminated: false };
 
-  while (true) {
+  // Safety: cap iterations to prevent any possible infinite loop
+  let safety = 0;
+  const MAX_ITERATIONS = 100;
+
+  while (++safety <= MAX_ITERATIONS) {
     if (state.drawPile.length === 0) {
       const recycled = recycleDiscardPile(state.discardPile);
       state.drawPile.push(...recycled);

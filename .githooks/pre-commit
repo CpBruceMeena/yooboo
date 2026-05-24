@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook — runs the socket/game smoke test on changes to server/ or
+# src/lib/game/ files. Blocks the commit if tests fail.
+#
+# Install with: git config core.hooksPath .githooks
+#
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+SMOKE_SCRIPT="$ROOT_DIR/scripts/smoke-test.mjs"
+SERVER_DIR="$ROOT_DIR/server"
+GAME_SERVER_PORT=3002
+LOG_FILE="/tmp/pre-commit-smoke.log"
+GAME_LOG="/tmp/pre-commit-game.log"
+
+GAME_PID=""
+server_was_running=false
+
+# ─── Cleanup trap — prevents zombie server if hook is killed ─────
+cleanup() {
+  if [ "$server_was_running" = false ] && [ -n "$GAME_PID" ]; then
+    kill "$GAME_PID" 2>/dev/null || true
+    # Give it a moment to die gracefully, then force kill
+    sleep 1
+    kill -9 "$GAME_PID" 2>/dev/null || true
+  fi
+}
+trap cleanup EXIT
+
+# ─── Check if relevant files are staged ──────────────────────────
+relevant_files=$(git diff --cached --name-only -- \
+  'server/' \
+  'src/lib/game/' \
+  'scripts/smoke-test.mjs' \
+  'play-game.mjs' \
+  'nginx.conf' \
+  2>/dev/null || true)
+
+if [ -z "$relevant_files" ]; then
+  echo "   ✓ No game/server changes staged — skipping smoke test"
+  exit 0
+fi
+
+echo ""
+echo "   🧪 Running smoke test on staged changes..."
+echo "   Files: $(echo "$relevant_files" | tr '\n' ' ')"
+echo ""
+
+# ─── Verify smoke test script exists ─────────────────────────────
+if [ ! -f "$SMOKE_SCRIPT" ]; then
+  echo "   ✕ Smoke test script not found at $SMOKE_SCRIPT"
+  exit 1
+fi
+
+# ─── Check if game server is already running ─────────────────────
+if lsof -ti :"$GAME_SERVER_PORT" 2>/dev/null | grep -q .; then
+  echo "   ● Game server already running on port $GAME_SERVER_PORT"
+  server_was_running=true
+else
+  echo "   ● Starting game server on port $GAME_SERVER_PORT..."
+  cd "$SERVER_DIR"
+  npx tsx index.ts > "$GAME_LOG" 2>&1 &
+  GAME_PID=$!
+
+  # Wait for server to be ready (up to 15s)
+  waited=0
+  while [ $waited -lt 15 ]; do
+    if lsof -ti :"$GAME_SERVER_PORT" 2>/dev/null | grep -q .; then
+      echo "   ● Game server started (PID $GAME_PID)"
+      break
+    fi
+    sleep 1
+    waited=$((waited + 1))
+  done
+
+  if [ $waited -ge 15 ]; then
+    echo "   ✕ Game server failed to start within 15s"
+    exit 1
+  fi
+fi
+
+# ─── Run the smoke test ──────────────────────────────────────────
+set +e
+cd "$ROOT_DIR"
+node "$SMOKE_SCRIPT" > "$LOG_FILE" 2>&1
+EXIT_CODE=$?
+set -e
+
+# ─── Check results ───────────────────────────────────────────────
+if [ $EXIT_CODE -ne 0 ]; then
+  echo "   ✕ SMOKE TEST FAILED (exit code $EXIT_CODE)"
+  echo ""
+  echo "   ── Test output ──────────────────────────────"
+  cat "$LOG_FILE"
+  echo "   ──────────────────────────────────────────────"
+  echo ""
+  echo "   Commit blocked. Fix the failing tests or skip with:"
+  echo "     git commit --no-verify"
+  exit 1
+else
+  echo "   ✓ Smoke test passed!"
+  exit 0
+fi

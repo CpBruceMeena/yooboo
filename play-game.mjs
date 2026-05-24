@@ -1,8 +1,7 @@
 import { io } from "socket.io-client";
 
-// Game server runs on port 3002 (proxied through nginx on port 3000)
-// For direct testing, connect to the game server port
-const SERVER_URL = "http://localhost:3002";
+// Connect through nginx on port 3000 (reverse proxy handles /api/socketio)
+const SERVER_URL = "http://localhost:3000";
 const ROOM = "AUTO1";
 
 // Track state for both players
@@ -13,7 +12,8 @@ const players = {
 
 function createPlayer(key, name) {
   const socket = io(SERVER_URL, {
-    transports: ["polling", "websocket"],
+    path: '/api/socketio',
+    transports: ["websocket", "polling"],
     timeout: 10000,
   });
 

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { Card as CardType, CardColor } from '@/lib/game';
-import { useWebRTC } from '@/hooks/useWebRTC';
+import { useSocket } from '@/hooks/useSocket';
 
 interface UseGameReturn {
   selectedCardId: string | null;
@@ -29,8 +29,8 @@ interface UseGameReturn {
   setSelectedDiscardIds: (ids: string[]) => void;
 }
 
-export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
-  const rtc = useWebRTC();
+export function useGame(): UseGameReturn & ReturnType<typeof useSocket> {
+  const socket = useSocket();
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [showChangeColor, setShowChangeColor] = useState(false);
   const [showDiscardAll, setShowDiscardAll] = useState(false);
@@ -39,16 +39,16 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
   const [selectedDiscardIds, setSelectedDiscardIds] = useState<string[]>([]);
 
-  const gameState = rtc.gameState;
-  const isMyTurn = gameState?.players[gameState.currentPlayerIndex]?.id === rtc.playerId;
+  const gameState = socket.gameState;
+  const isMyTurn = gameState?.players[gameState.currentPlayerIndex]?.id === socket.playerId;
   const isLoading = !gameState || gameState.status === 'lobby';
-  const localPlayer = gameState?.players.find((p) => p.id === rtc.playerId);
+  const localPlayer = gameState?.players.find((p) => p.id === socket.playerId);
   const discardHandCards = localPlayer?.hand ?? [];
 
   const handleCardClick = useCallback((cardId: string) => {
     if (!gameState) return;
 
-    const localPlayer = gameState.players.find((p) => p.id === rtc.playerId);
+    const localPlayer = gameState.players.find((p) => p.id === socket.playerId);
     if (!localPlayer) return;
 
     const card = localPlayer.hand.find((c) => c.id === cardId);
@@ -65,7 +65,7 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
         return;
       }
       if (card.type === 'discardAll') {
-        rtc.playCard(cardId);
+        socket.playCard(cardId);
 
         // Only show discard modal if this is the FIRST discardAll in a chain.
         // Playing discardAll over discardAll = just play the card, no extra discard.
@@ -80,56 +80,56 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
         setSelectedCardId(null);
         return;
       }
-      rtc.playCard(cardId);
+      socket.playCard(cardId);
       setSelectedCardId(null);
     } else {
       setSelectedCardId(cardId);
     }
-  }, [gameState, rtc, selectedCardId]);
+  }, [gameState, socket, selectedCardId]);
 
   const handleDraw = useCallback(() => {
     if (!isMyTurn) return;
-    rtc.drawCard();
+    socket.drawCard();
     setSelectedCardId(null);
-  }, [isMyTurn, rtc]);
+  }, [isMyTurn, socket]);
 
   const handleSkipTurn = useCallback(() => {
     if (!isMyTurn) return;
-    rtc.skipTurn();
+    socket.skipTurn();
     setSelectedCardId(null);
-  }, [isMyTurn, rtc]);
+  }, [isMyTurn, socket]);
 
   const handleSayUno = useCallback(() => {
-    rtc.sayUno();
-  }, [rtc]);
+    socket.sayUno();
+  }, [socket]);
 
   const handleColorSelect = useCallback((color: Exclude<CardColor, 'wild'>) => {
     if (pendingCardId) {
-      rtc.playCard(pendingCardId, color);
+      socket.playCard(pendingCardId, color);
     }
     setShowChangeColor(false);
     setPendingCardId(null);
-  }, [pendingCardId, rtc]);
+  }, [pendingCardId, socket]);
 
   const handleDiscardSelect = useCallback((color: Exclude<CardColor, 'wild'>, cardIds?: string[]) => {
-    rtc.discardColor(color, cardIds);
+    socket.discardColor(color, cardIds);
     setShowDiscardAll(false);
     setPendingCardId(null);
     setPendingDiscardColor(null);
-  }, [rtc]);
+  }, [socket]);
 
   const handleEmote = useCallback((emote: string) => {
     // Emojis are sent as chat messages so they appear in the chat window
-    rtc.sendChat(emote);
-  }, [rtc]);
+    socket.sendChat(emote);
+  }, [socket]);
 
   const handleSendChat = useCallback((message: string) => {
-    rtc.sendChat(message);
-  }, [rtc]);
+    socket.sendChat(message);
+  }, [socket]);
 
   const handleLeave = useCallback(() => {
-    rtc.leaveRoom();
-  }, [rtc]);
+    socket.leaveRoom();
+  }, [socket]);
 
   const clearToast = useCallback(() => {
     setToast(null);
@@ -141,7 +141,7 @@ export function useGame(): UseGameReturn & ReturnType<typeof useWebRTC> {
   }, []);
 
   return {
-    ...rtc,
+    ...socket,
     selectedCardId,
     showChangeColor,
     showDiscardAll,

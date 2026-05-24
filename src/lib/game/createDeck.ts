@@ -54,9 +54,17 @@ export function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+/**
+ * Recycles all cards from the discard pile except the top card.
+ * IMPORTANT: These cards are REMOVED from the discard pile to prevent
+ * the same cards from being recycled over and over in a tight loop.
+ */
 export function recycleDiscardPile(discardPile: Card[]): Card[] {
   if (discardPile.length <= 1) return [];
   const top = discardPile[discardPile.length - 1];
   const rest = discardPile.slice(0, -1);
+  // Remove recycled cards from the discard pile (keep only the top card)
+  discardPile.length = 0;
+  discardPile.push(top);
   return shuffle(rest);
 }

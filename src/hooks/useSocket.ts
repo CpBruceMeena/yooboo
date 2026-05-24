@@ -7,7 +7,7 @@ interface LobbyPlayerInfo {
   name: string;
 }
 
-interface WebRTCReturn {
+interface SocketReturn {
   connected: boolean;
   gameState: GameState | null;
   playerId: string | null;
@@ -35,7 +35,7 @@ interface WebRTCReturn {
 
 
 
-export function useWebRTC(): WebRTCReturn {
+export function useSocket(): SocketReturn {
   const socketRef = useRef<Socket | null>(null);
   const [connected, setConnected] = useState(false);
   const [gameState, setGameState] = useState<GameState | null>(null);
