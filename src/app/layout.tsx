@@ -40,8 +40,14 @@ const cormorantGaramond = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "YOOBOO",
+  title: "YOOBOO — RAGE MODE",
   description: "Real-time multiplayer card game — high-stakes action, stacking penalties, and elimination. Last one standing wins.",
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
+  themeColor: "#0D0A08",
 };
 
 export default function RootLayout({
