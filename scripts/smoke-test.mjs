@@ -120,47 +120,44 @@ async function runTests() {
   await new Promise(r => setTimeout(r, 500));
   console.log('');
 
-  // ────── Phase 2: Nginx Socket.IO Handshake (port 3000, no Next.js needed) ──────
-  console.log('--- Phase 2: Nginx Socket.IO Handshake (port 3000) ---');
-
-  // Test raw Socket.IO Engine.IO polling handshake through nginx.
-  // This tests that nginx correctly proxies /api/socketio to the game server
-  // WITHOUT needing Next.js to be running on port 3001.
-  // Engine.IO v4 sends: GET /api/socketio?EIO=4&transport=polling
-  // A successful response is HTTP 200 with body starting with "0{" (Engine.IO open packet)
-  try {
-    const handshakeResult = await new Promise((resolve) => {
-      const u = new URL(NGINX_URL);
-      const req = http.get(
-        `${u.protocol}//${u.hostname}:${u.port}${SOCKET_PATH}?EIO=4&transport=polling`,
-        { timeout: 5000 },
-        (res) => {
-          let data = '';
-          res.on('data', c => data += c);
-          res.on('end', () => resolve({ status: res.statusCode, data }));
-        }
-      );
-      req.on('error', (e) => resolve({ error: e.message }));
-      req.setTimeout(5000, () => { req.destroy(); resolve({ error: 'timeout' }); });
-    });
-    ok(!handshakeResult.error, 'Nginx Socket.IO handshake responded (no error)');
-    if (!handshakeResult.error) {
-      ok(handshakeResult.status === 200,
-        `Nginx Socket.IO handshake HTTP 200 (got ${handshakeResult.status})`);
-      ok(typeof handshakeResult.data === 'string' && handshakeResult.data.startsWith('0{'),
-        `Nginx Socket.IO handshake valid Engine.IO open packet (starts with '0{')`);
-    }
-  } catch (e) {
-    ok(false, 'Nginx Socket.IO handshake exception: ' + e.message);
-  }
-  console.log('');
-
-  // ────── Phase 3: Full Game Flow Through Nginx (port 3000) ──────
-  console.log('--- Phase 3: Full Game Flow Through Nginx (port 3000) ---');
+  // ────── Phase 2 & 3: Nginx-dependent tests ──────
   const nginxUp = await portCheck(NGINX_URL);
+
   if (!nginxUp) {
-    console.log('  \u26a0\uFE0F  Skipping full nginx game flow (port 3000 not responding — Next.js may not be running)');
+    console.log('--- Nginx (port 3000) not available — skipping nginx tests ---');
+    console.log('  \u26a0\uFE0F  Start nginx + Next.js for full integration test\n');
   } else {
+    // ─── Phase 2: Nginx Socket.IO Handshake ───
+    console.log('--- Phase 2: Nginx Socket.IO Handshake (port 3000) ---');
+    try {
+      const handshakeResult = await new Promise((resolve) => {
+        const u = new URL(NGINX_URL);
+        const req = http.get(
+          `${u.protocol}//${u.hostname}:${u.port}${SOCKET_PATH}?EIO=4&transport=polling`,
+          { timeout: 5000 },
+          (res) => {
+            let data = '';
+            res.on('data', c => data += c);
+            res.on('end', () => resolve({ status: res.statusCode, data }));
+          }
+        );
+        req.on('error', (e) => resolve({ error: e.message }));
+        req.setTimeout(5000, () => { req.destroy(); resolve({ error: 'timeout' }); });
+      });
+      ok(!handshakeResult.error, 'Nginx Socket.IO handshake responded (no error)');
+      if (!handshakeResult.error) {
+        ok(handshakeResult.status === 200,
+          `Nginx Socket.IO handshake HTTP 200 (got ${handshakeResult.status})`);
+        ok(typeof handshakeResult.data === 'string' && handshakeResult.data.startsWith('0{'),
+          `Nginx Socket.IO handshake valid Engine.IO open packet (starts with '0{')`);
+      }
+    } catch (e) {
+      ok(false, 'Nginx Socket.IO handshake exception: ' + e.message);
+    }
+    console.log('');
+
+    // ─── Phase 3: Full Game Flow Through Nginx ───
+    console.log('--- Phase 3: Full Game Flow Through Nginx (port 3000) ---');
     const [n1, n2] = await Promise.all([client(NGINX_URL, 'Carol', ROOMS.nginx), client(NGINX_URL, 'Dave', ROOMS.nginx)]);
     ok(n1.st.connected, 'Carol connected (nginx)');
     ok(n2.st.connected, 'Dave connected (nginx)');
