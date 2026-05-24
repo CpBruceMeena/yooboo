@@ -219,8 +219,7 @@ Client (Next.js + Tailwind v4) -------- HTTPS -------> nginx (:3000)
 nginx.conf         nginx reverse proxy config (port 3000)
 run.sh             Startup script (tmux/background, stale build detection)
 src/
-  lib/game/       Game engine (pure TS, shared with server)
-  hooks/          React hooks (useWebRTC, useGame)
+  lib/game/       Game engine (pure TS, shared with server)          hooks/          React hooks (useSocket, useGame)
   components/     UI components
   app/            Next.js pages (lobby + game)
 server/

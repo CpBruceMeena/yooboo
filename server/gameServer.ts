@@ -26,48 +26,6 @@ interface Room {
 
 const rooms = new Map<string, Room>();
 
-function createInitialState(roomId: string, players: { id: string; name: string }[]): GameState {
-  const deck = createDeck();
-  const hands: Card[][] = players.map(() => []);
-
-  for (let i = 0; i < 7; i++) {
-    for (const hand of hands) {
-      const card = deck.pop();
-      if (card) hand.push(card);
-    }
-  }
-
-  let discardTop = deck.pop()!;
-  while (discardTop.type !== 'number') {
-    deck.push(discardTop);
-    discardTop = deck.pop()!;
-  }
-
-  return {
-    roomId,
-    players: players.map((p, i) => ({
-      id: p.id,
-      name: p.name,
-      hand: hands[i],
-      isEliminated: false,
-      saidUno: false,
-      connected: true,
-    })),
-    drawPile: deck,
-    discardPile: [discardTop],
-    currentPlayerIndex: 0,
-    direction: 1,
-    activeColor: discardTop.color === 'wild' ? null : discardTop.color as any,
-    pendingDraw: 0,
-    pendingType: null,
-    smileyActive: false,
-    smileyColor: null,
-    skipEveryoneActive: false,
-    status: 'in_game',
-    winnerId: null,
-  };
-}
-
 export function setupGameServer(io: SocketIOServer) {
   const clientMap = new Map<string, ClientInfo>();
 
@@ -202,7 +160,58 @@ export function setupGameServer(io: SocketIOServer) {
         }
 
         room.lobbyPlayers = [];
-        room.state = createInitialState(info.roomId, players);
+
+        // Create initial game state.
+        // NOTE: Inlined instead of a separate function because `tsx` (v4.22.3) can hang
+        // when a module-level function is lazily compiled on first call from within a
+        // Socket.IO event handler. The lazy compilation triggers re-resolution of
+        // imported symbols (like `createDeck`) through the re-export chain, causing a
+        // synchronous deadlock on the event loop. Inlining avoids the separate compilation unit.
+        const deck = createDeck();
+        const hands: Card[][] = players.map(() => []);
+        for (let i = 0; i < 7; i++) {
+          for (const hand of hands) {
+            const card = deck.pop();
+            if (card) hand.push(card);
+          }
+        }
+
+        let discardTop = deck.pop();
+        // Safety: prevent infinite loop if deck has no number cards
+        let safety = 0;
+        while (discardTop && discardTop.type !== 'number') {
+          if (++safety > 200) { discardTop = undefined; break; }
+          deck.push(discardTop);
+          discardTop = deck.pop();
+        }
+        // Fallback: if no discard found (impossible with 152-card deck, but defensive)
+        if (!discardTop) {
+          discardTop = deck.find(c => c.type === 'number') ?? { id: 'fallback', type: 'number' as const, color: 'red' as const, value: 0 };
+        }
+
+        room.state = {
+          roomId: info.roomId,
+          players: players.map((p, i) => ({
+            id: p.id,
+            name: p.name,
+            hand: hands[i],
+            isEliminated: false,
+            saidUno: false,
+            connected: true,
+          })),
+          drawPile: deck,
+          discardPile: [discardTop],
+          currentPlayerIndex: 0,
+          direction: 1,
+          activeColor: discardTop.color === 'wild' ? null : discardTop.color as any,
+          pendingDraw: 0,
+          pendingType: null,
+          smileyActive: false,
+          smileyColor: null,
+          skipEveryoneActive: false,
+          status: 'in_game',
+          winnerId: null,
+        };
         console.log('start_game room.clients entries', Array.from(room.clients.entries()));
 
         // First, prune stale clients (disconnected sockets still in the map)
