@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
+import YoobooLogo from '@/components/YoobooLogo';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -35,17 +36,9 @@ export default function Navbar() {
         {/* Logo */}
         <button
           onClick={scrollToTop}
-          className="flex items-center gap-2.5 group cursor-pointer"
+          className="group cursor-pointer transition-transform duration-300 hover:scale-[1.04] active:scale-95"
         >
-          <span className="text-2xl">🃏</span>
-          <div className="text-left">
-            <span className="font-serif text-lg sm:text-xl font-black text-cream tracking-tight block leading-tight group-hover:text-goldGlow transition-colors duration-300">
-              UNO
-            </span>
-            <span className="font-serif text-[10px] sm:text-xs font-bold italic text-gold/70 tracking-[0.15em] block leading-tight">
-              NO MERCY
-            </span>
-          </div>
+          <YoobooLogo size="sm" />
         </button>
 
         {/* Spacer for right side (keeps layout balanced) */}

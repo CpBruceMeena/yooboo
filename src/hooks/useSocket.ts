@@ -21,7 +21,7 @@ interface SocketReturn {
   drawCard: () => void;
   skipTurn: () => void;
   discardColor: (color: Exclude<Card['color'], 'wild'>, cardIds?: string[]) => void;
-  sayUno: () => void;
+  sayYooboo: () => void;
   sendEmote: (emote: string) => void;
   sendChat: (message: string) => void;
   leaveRoom: () => void;
@@ -29,8 +29,8 @@ interface SocketReturn {
   smileyReveal: { cards: Card[]; playerId: string; matched: boolean; eliminated: boolean } | null;
   clearSmileyReveal: () => void;
   chatMessages: { playerId: string; playerName: string; message: string }[];
-  unoCall: { playerId: string; playerName: string } | null;
-  clearUnoCall: () => void;
+  yoobooCall: { playerId: string; playerName: string } | null;
+  clearYoobooCall: () => void;
 }
 
 
@@ -51,7 +51,7 @@ export function useSocket(): SocketReturn {
   } | null>(null);
   const [lobbyPlayers, setLobbyPlayers] = useState<LobbyPlayerInfo[]>([]);
   const [roomId, setRoomId] = useState<string | null>(null);
-  const [unoCall, setUnoCall] = useState<{ playerId: string; playerName: string } | null>(null);
+  const [yoobooCall, setYoobooCall] = useState<{ playerId: string; playerName: string } | null>(null);
   const [chatMessages, setChatMessages] = useState<{ playerId: string; playerName: string; message: string }[]>([]);
   const pendingJoinRef = useRef<{ roomId: string; playerName: string } | null>(null);
   const joinedRoomRef = useRef<{ roomId: string; playerName: string } | null>(null);
@@ -203,10 +203,10 @@ export function useSocket(): SocketReturn {
       setChatMessages((prev) => [...prev.slice(-50), data]);
     });
 
-    socket.on('uno_called', (data: { playerId: string; playerName: string }) => {
-      setUnoCall(data);
+    socket.on('yooboo_called', (data: { playerId: string; playerName: string }) => {
+      setYoobooCall(data);
       // Auto-clear after 3 seconds
-      setTimeout(() => setUnoCall(null), 3000);
+      setTimeout(() => setYoobooCall(null), 3000);
     });
 
     return () => {
@@ -280,12 +280,12 @@ export function useSocket(): SocketReturn {
     socketRef.current?.emit('chat_message', { message: message.trim() });
   }, []);
 
-  const sayUno = useCallback(() => {
-    socketRef.current?.emit('say_uno');
+  const sayYooboo = useCallback(() => {
+    socketRef.current?.emit('say_yooboo');
   }, []);
 
-  const clearUnoCall = useCallback(() => {
-    setUnoCall(null);
+  const clearYoobooCall = useCallback(() => {
+    setYoobooCall(null);
   }, []);
 
   const leaveRoom = useCallback(() => {
@@ -318,7 +318,7 @@ export function useSocket(): SocketReturn {
     drawCard,
     skipTurn,
     discardColor,
-    sayUno,
+    sayYooboo,
     sendEmote,
     sendChat,
     leaveRoom,
@@ -326,7 +326,7 @@ export function useSocket(): SocketReturn {
     smileyReveal,
     clearSmileyReveal,
     chatMessages,
-    unoCall,
-    clearUnoCall,
+    yoobooCall,
+    clearYoobooCall,
   };
 }

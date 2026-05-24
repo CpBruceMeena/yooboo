@@ -14,14 +14,14 @@ interface ChatMessage {
 interface RightPanelProps {
   onDraw: () => void;
   onSkipTurn: () => void;
-  onSayUno: () => void;
+  onSayYooboo: () => void;
   onEmote: (emote: string) => void;
   onSendChat: (message: string) => void;
   chatMessages?: ChatMessage[];
   playerId?: string | null;
   disabled?: boolean;
   hasDrawn?: boolean;
-  unoEligible?: boolean;
+  yoobooEligible?: boolean;
 }
 
 /* ── Detect whether a message is a single emoji ── */
@@ -153,10 +153,10 @@ function ChatBox({ messages, onSend, playerId }: { messages: ChatMessage[]; onSe
 }
 
 export default function RightPanel({
-  onDraw, onSkipTurn, onSayUno,
+  onDraw, onSkipTurn, onSayYooboo,
   onEmote, onSendChat,
   chatMessages = [],
-  playerId, disabled, hasDrawn, unoEligible
+  playerId, disabled, hasDrawn, yoobooEligible
 }: RightPanelProps) {
   const [emotesExpanded, setEmotesExpanded] = useState(false);
 
@@ -170,10 +170,10 @@ export default function RightPanel({
           <GameActions
             onDraw={onDraw}
             onSkipTurn={onSkipTurn}
-            onSayUno={onSayUno}
+            onSayYooboo={onSayYooboo}
             disabled={disabled}
             hasDrawn={hasDrawn}
-            unoEligible={unoEligible}
+            yoobooEligible={yoobooEligible}
           />
         </div>
         <div>

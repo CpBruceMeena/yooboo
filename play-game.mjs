@@ -149,7 +149,7 @@ async function takeTurn(playerKey, name) {
 }
 
 async function main() {
-  console.log("=== Uno-NoMercy Auto-Play Script ===\n");
+  console.log("=== YOOBOO Auto-Play Script ===\n");
 
   // Create both player connections
   players.p1.socket = createPlayer("p1", "Alice");

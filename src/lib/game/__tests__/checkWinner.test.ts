@@ -11,8 +11,8 @@ describe('checkWinner', () => {
     const state: GameState = {
       roomId: 'test',
       players: [
-        { id: 'p1', name: 'Alice', hand: [makeCard()], isEliminated: false, saidUno: false, connected: true },
-        { id: 'p2', name: 'Bob', hand: [makeCard()], isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [makeCard()], isEliminated: false, saidYooboo: false, connected: true },
+        { id: 'p2', name: 'Bob', hand: [makeCard()], isEliminated: false, saidYooboo: false, connected: true },
       ],
       drawPile: [],
       discardPile: [],
@@ -34,8 +34,8 @@ describe('checkWinner', () => {
     const state: GameState = {
       roomId: 'test',
       players: [
-        { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidUno: false, connected: true },
-        { id: 'p2', name: 'Bob', hand: [makeCard()], isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidYooboo: false, connected: true },
+        { id: 'p2', name: 'Bob', hand: [makeCard()], isEliminated: false, saidYooboo: false, connected: true },
       ],
       drawPile: [],
       discardPile: [],
@@ -60,9 +60,9 @@ describe('checkWinner', () => {
     const state: GameState = {
       roomId: 'test',
       players: [
-        { id: 'p1', name: 'Alice', hand: [makeCard()], isEliminated: false, saidUno: false, connected: true },
-        { id: 'p2', name: 'Bob', hand: [makeCard()], isEliminated: true, saidUno: false, connected: true },
-        { id: 'p3', name: 'Carol', hand: [makeCard()], isEliminated: true, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [makeCard()], isEliminated: false, saidYooboo: false, connected: true },
+        { id: 'p2', name: 'Bob', hand: [makeCard()], isEliminated: true, saidYooboo: false, connected: true },
+        { id: 'p3', name: 'Carol', hand: [makeCard()], isEliminated: true, saidYooboo: false, connected: true },
       ],
       drawPile: [],
       discardPile: [],
@@ -86,7 +86,7 @@ describe('checkWinner', () => {
     const state: GameState = {
       roomId: 'test',
       players: [
-        { id: 'p1', name: 'Alice', hand: [makeCard()], isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [makeCard()], isEliminated: false, saidYooboo: false, connected: true },
       ],
       drawPile: [],
       discardPile: [],
@@ -109,8 +109,8 @@ describe('checkWinner', () => {
     const state: GameState = {
       roomId: 'test',
       players: [
-        { id: 'p1', name: 'Alice', hand: [], isEliminated: true, saidUno: false, connected: true },
-        { id: 'p2', name: 'Bob', hand: [makeCard()], isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [], isEliminated: true, saidYooboo: false, connected: true },
+        { id: 'p2', name: 'Bob', hand: [makeCard()], isEliminated: false, saidYooboo: false, connected: true },
       ],
       drawPile: [],
       discardPile: [],

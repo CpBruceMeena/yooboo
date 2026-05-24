@@ -11,8 +11,8 @@ describe('checkElimination', () => {
     const state: GameState = {
       roomId: 'test',
       players: [
-        { id: 'p1', name: 'Alice', hand: Array.from({ length: 7 }, (_, i) => makeCard({ id: `c${i}` })), isEliminated: false, saidUno: false, connected: true },
-        { id: 'p2', name: 'Bob', hand: Array.from({ length: 7 }, (_, i) => makeCard({ id: `d${i}` })), isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: Array.from({ length: 7 }, (_, i) => makeCard({ id: `c${i}` })), isEliminated: false, saidYooboo: false, connected: true },
+        { id: 'p2', name: 'Bob', hand: Array.from({ length: 7 }, (_, i) => makeCard({ id: `d${i}` })), isEliminated: false, saidYooboo: false, connected: true },
       ],
       drawPile: [],
       discardPile: [],
@@ -34,7 +34,7 @@ describe('checkElimination', () => {
     const state: GameState = {
       roomId: 'test',
       players: [
-        { id: 'p1', name: 'Alice', hand: Array.from({ length: 25 }, (_, i) => makeCard({ id: `c${i}` })), isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: Array.from({ length: 25 }, (_, i) => makeCard({ id: `c${i}` })), isEliminated: false, saidYooboo: false, connected: true },
       ],
       drawPile: [],
       discardPile: [],
@@ -58,7 +58,7 @@ describe('checkElimination', () => {
     const state: GameState = {
       roomId: 'test',
       players: [
-        { id: 'p1', name: 'Alice', hand: Array.from({ length: 30 }, (_, i) => makeCard({ id: `c${i}` })), isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: Array.from({ length: 30 }, (_, i) => makeCard({ id: `c${i}` })), isEliminated: false, saidYooboo: false, connected: true },
       ],
       drawPile: [],
       discardPile: [],
@@ -81,8 +81,8 @@ describe('checkElimination', () => {
     const state: GameState = {
       roomId: 'test',
       players: [
-        { id: 'p1', name: 'Alice', hand: Array.from({ length: 25 }, (_, i) => makeCard({ id: `c${i}` })), isEliminated: true, saidUno: false, connected: true },
-        { id: 'p2', name: 'Bob', hand: Array.from({ length: 7 }, (_, i) => makeCard({ id: `d${i}` })), isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: Array.from({ length: 25 }, (_, i) => makeCard({ id: `c${i}` })), isEliminated: true, saidYooboo: false, connected: true },
+        { id: 'p2', name: 'Bob', hand: Array.from({ length: 7 }, (_, i) => makeCard({ id: `d${i}` })), isEliminated: false, saidYooboo: false, connected: true },
       ],
       drawPile: [],
       discardPile: [],
@@ -104,8 +104,8 @@ describe('checkElimination', () => {
     const state: GameState = {
       roomId: 'test',
       players: [
-        { id: 'p1', name: 'Alice', hand: Array.from({ length: 25 }, (_, i) => makeCard({ id: `c${i}` })), isEliminated: false, saidUno: false, connected: true },
-        { id: 'p2', name: 'Bob', hand: Array.from({ length: 30 }, (_, i) => makeCard({ id: `d${i}` })), isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: Array.from({ length: 25 }, (_, i) => makeCard({ id: `c${i}` })), isEliminated: false, saidYooboo: false, connected: true },
+        { id: 'p2', name: 'Bob', hand: Array.from({ length: 30 }, (_, i) => makeCard({ id: `d${i}` })), isEliminated: false, saidYooboo: false, connected: true },
       ],
       drawPile: [],
       discardPile: [],
@@ -131,7 +131,7 @@ describe('isEliminated', () => {
     const state: GameState = {
       roomId: 'test',
       players: [
-        { id: 'p1', name: 'Alice', hand: [], isEliminated: true, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [], isEliminated: true, saidYooboo: false, connected: true },
       ],
       drawPile: [],
       discardPile: [],
@@ -153,7 +153,7 @@ describe('isEliminated', () => {
     const state: GameState = {
       roomId: 'test',
       players: [
-        { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidYooboo: false, connected: true },
       ],
       drawPile: [],
       discardPile: [],

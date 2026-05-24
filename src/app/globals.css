@@ -260,7 +260,7 @@ body::after {
   100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
-@keyframes uno-pulse {
+@keyframes yooboo-pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.2); }
 }
@@ -314,7 +314,7 @@ body::after {
 .animate-card-lift { animation: card-lift 0.2s ease-out forwards; }
 .animate-stack-pulse { animation: stack-pulse 1s ease-in-out infinite; }
 .animate-discard-burst { animation: discard-burst 0.3s ease-out forwards; }
-.animate-uno-pulse { animation: uno-pulse 0.8s ease-in-out infinite; }
+.animate-yooboo-pulse { animation: yooboo-pulse 0.8s ease-in-out infinite; }
 .animate-avatar-glow { animation: avatar-glow 2s ease-in-out infinite; }
 .animate-fade-in { animation: fade-in 0.3s ease-out forwards; opacity: 0; }
 .animate-slide-up { animation: slide-up 0.4s ease-out forwards; opacity: 0; }

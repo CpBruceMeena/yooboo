@@ -150,7 +150,7 @@ export default function GameTable({
               localPlayer.isEliminated
                 ? 'eliminated'
                 : localPlayer.hand.length === 1 && !localPlayer.isEliminated
-                  ? 'uno'
+                  ? 'yooboo'
                   : playerId === gameState.players[gameState.currentPlayerIndex]?.id
                     ? 'active'
                     : 'idle'

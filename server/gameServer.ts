@@ -196,7 +196,7 @@ export function setupGameServer(io: SocketIOServer) {
             name: p.name,
             hand: hands[i],
             isEliminated: false,
-            saidUno: false,
+            saidYooboo: false,
             connected: true,
           })),
           drawPile: deck,
@@ -311,10 +311,10 @@ export function setupGameServer(io: SocketIOServer) {
 
       const effects = applyCardEffect(state, card, payload.chosenColor);
 
-      // Broadcast UNO call when player goes from 2 cards to 1
-      if (player.hand.length === 1 && !player.saidUno) {
-        player.saidUno = true;
-        io.to(info.roomId).emit('uno_called', { 
+      // Broadcast YOOBOO call when player goes from 2 cards to 1
+      if (player.hand.length === 1 && !player.saidYooboo) {
+        player.saidYooboo = true;
+        io.to(info.roomId).emit('yooboo_called', { 
           playerId: player.id, 
           playerName: player.name 
         });
@@ -619,13 +619,13 @@ export function setupGameServer(io: SocketIOServer) {
       clientMap.delete(socket.id);
     });
 
-    socket.on('say_uno', () => {
+    socket.on('say_yooboo', () => {
       const info = clientMap.get(socket.id);
       if (!info) return;
       const room = rooms.get(info.roomId);
       if (!room || !room.state) return;
       const player = room.state.players.find((p) => p.id === info.playerId);
-      if (player) player.saidUno = true;
+      if (player) player.saidYooboo = true;
     });
 
     socket.on('emote', ({ emote }: { emote: string }) => {

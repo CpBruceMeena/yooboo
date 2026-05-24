@@ -112,7 +112,7 @@ describe('validatePlay', () => {
   it('should return null for a valid play', () => {
     const state = makeState({
       players: [
-        { id: 'p1', name: 'Alice', hand: [makeCard({ color: 'blue', type: 'number', value: 7 })], isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [makeCard({ color: 'blue', type: 'number', value: 7 })], isEliminated: false, saidYooboo: false, connected: true },
       ],
       currentPlayerIndex: 0,
     });
@@ -127,7 +127,7 @@ describe('validatePlay', () => {
   it('should return error if player is eliminated', () => {
     const state = makeState({
       players: [
-        { id: 'p1', name: 'Alice', hand: [makeCard({ color: 'blue', type: 'number', value: 7 })], isEliminated: true, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [makeCard({ color: 'blue', type: 'number', value: 7 })], isEliminated: true, saidYooboo: false, connected: true },
       ],
     });
     expect(validatePlay(state, 'p1', 'card_1')).toBe('Player is eliminated');
@@ -136,8 +136,8 @@ describe('validatePlay', () => {
   it('should return error if not players turn', () => {
     const state = makeState({
       players: [
-        { id: 'p1', name: 'Alice', hand: [makeCard()], isEliminated: false, saidUno: false, connected: true },
-        { id: 'p2', name: 'Bob', hand: [makeCard()], isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [makeCard()], isEliminated: false, saidYooboo: false, connected: true },
+        { id: 'p2', name: 'Bob', hand: [makeCard()], isEliminated: false, saidYooboo: false, connected: true },
       ],
       currentPlayerIndex: 1,
     });
@@ -147,7 +147,7 @@ describe('validatePlay', () => {
   it('should return error if card not in hand', () => {
     const state = makeState({
       players: [
-        { id: 'p1', name: 'Alice', hand: [makeCard({ id: 'other_card', color: 'blue' })], isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [makeCard({ id: 'other_card', color: 'blue' })], isEliminated: false, saidYooboo: false, connected: true },
       ],
       currentPlayerIndex: 0,
     });
@@ -157,7 +157,7 @@ describe('validatePlay', () => {
   it('should return error if card cannot be played', () => {
     const state = makeState({
       players: [
-        { id: 'p1', name: 'Alice', hand: [makeCard({ color: 'green', type: 'number', value: 7 })], isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [makeCard({ color: 'green', type: 'number', value: 7 })], isEliminated: false, saidYooboo: false, connected: true },
       ],
       currentPlayerIndex: 0,
       activeColor: 'red',

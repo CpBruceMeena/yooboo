@@ -49,28 +49,17 @@ function CardBackSVG() {
         <line x1="40" y1="36" x2="40" y2="76" stroke="#C9952A" strokeWidth="0.3" />
       </g>
 
-      {/* "NO MERCY" chrome wordmark */}
+      {/* "YOOBOO" chrome wordmark */}
       <text
-        x="40" y="54"
+        x="40" y="56"
         textAnchor="middle"
-        fontSize="8"
+        fontSize="7"
         fontWeight="800"
         letterSpacing="3"
         fill="#FFFFFF"
         style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.8)) drop-shadow(0 0 8px rgba(192,187,168,0.2))' }}
       >
-        NO
-      </text>
-      <text
-        x="40" y="66"
-        textAnchor="middle"
-        fontSize="7"
-        fontWeight="700"
-        letterSpacing="3.5"
-        fill="#C0BBA8"
-        style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))' }}
-      >
-        MERCY
+        YOOBOO
       </text>
 
       {/* Horizontal chrome bar underneath */}

@@ -40,8 +40,8 @@ const cormorantGaramond = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "Uno-No-Mercy",
-  description: "Real-time multiplayer UNO card game — no mercy. Last one standing wins.",
+  title: "YOOBOO",
+  description: "Real-time multiplayer card game — high-stakes action, stacking penalties, and elimination. Last one standing wins.",
 };
 
 export default function RootLayout({

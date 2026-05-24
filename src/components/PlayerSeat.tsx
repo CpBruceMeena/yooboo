@@ -7,7 +7,7 @@ import { Player } from '@/lib/game';
 interface PlayerSeatProps {
   player: Player;
   cardCount: number;
-  state: 'idle' | 'active' | 'underAttack' | 'uno' | 'eliminated';
+  state: 'idle' | 'active' | 'underAttack' | 'yooboo' | 'eliminated';
   isCurrentPlayer?: boolean;
   position?: 'top' | 'left' | 'right' | 'bottom';
   onAttack?: () => void;
@@ -30,7 +30,7 @@ function getAvatarUrl(name: string): string {
 
 export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, position = 'top' }: PlayerSeatProps) {
   const isEliminated = state === 'eliminated';
-  const isUno = state === 'uno';
+  const isYooboo = state === 'yooboo';
   const isActive = state === 'active';
 
   const isHorizontal = position === 'left' || position === 'right' || position === 'bottom';
@@ -101,8 +101,8 @@ export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, 
             className="absolute -inset-1 rounded-full bg-gradient-to-br from-gold/60 to-goldGlow/40"
           />
         )}
-        {/* UNO glow */}
-        {isUno && (
+        {/* YOOBOO glow */}
+        {isYooboo && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 0.5, scale: 1 }}
@@ -120,9 +120,9 @@ export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, 
             relative w-11 h-11 rounded-full overflow-hidden
             transition-all duration-300 bg-bgTertiary
             ${isActive ? 'ring-2 ring-goldGlow shadow-[0_0_10px_rgba(232,184,75,0.4)]' : ''}
-            ${!isActive && isUno ? 'ring-2 ring-success' : ''}
-            ${!isActive && isCurrentPlayer && !isUno ? 'ring-2 ring-white/50' : ''}
-            ${!isActive && !isUno && !isCurrentPlayer ? 'ring-1 ring-white/15' : ''}
+            ${!isActive && isYooboo ? 'ring-2 ring-success' : ''}
+            ${!isActive && isCurrentPlayer && !isYooboo ? 'ring-2 ring-white/50' : ''}
+            ${!isActive && !isYooboo && !isCurrentPlayer ? 'ring-1 ring-white/15' : ''}
             ${isEliminated ? 'grayscale' : ''}
           `}
         >
@@ -173,14 +173,14 @@ export default function PlayerSeat({ player, cardCount, state, isCurrentPlayer, 
           </motion.span>
         )}
         <span className="text-[11px] text-textMuted/70">{cardCount} cards</span>
-        {isUno && (
+        {isYooboo && (
           <motion.span
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 300, damping: 15 }}
             className="text-[11px] text-success font-bold"
           >
-            UNO!
+            YOOBOO!
           </motion.span>
         )}
         {isEliminated && (

@@ -1,11 +1,31 @@
 #!/usr/bin/env bash
 #
-# Pre-commit hook — runs the socket/game smoke test on changes to server/ or
-# src/lib/game/ files. Blocks the commit if tests fail.
+# Pre-commit hook — protects master branch + runs tests on staged changes
 #
 # Install with: git config core.hooksPath .githooks
 #
 set -euo pipefail
+
+# ─── Master branch protection — no direct commits ────────────────
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+if [ "$CURRENT_BRANCH" = "master" ]; then
+  echo ""
+  echo "   🚫 COMMIT BLOCKED: Direct commits to 'master' are not allowed."
+  echo ""
+  echo "   Create a feature branch instead:"
+  echo "     git checkout -b feat/your-feature-name"
+  echo "     git add <files>"
+  echo "     git commit"
+  echo ""
+  echo "   Then merge your branch into master:"
+  echo "     git checkout master"
+  echo "     git merge feat/your-feature-name"
+  echo ""
+  echo "   To override (not recommended):"
+  echo "     git commit --no-verify"
+  echo ""
+  exit 1
+fi
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 SMOKE_SCRIPT="$ROOT_DIR/scripts/smoke-test.mjs"

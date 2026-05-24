@@ -48,7 +48,7 @@ export default function PlayerRing({ gameState, currentPlayerId }: PlayerRingPro
         const isCurrent = player.id === currentPlayerId;
         const pos = positions[idx] ?? 'top';
         const state = player.hand.length === 1 && !player.isEliminated
-            ? 'uno'
+            ? 'yooboo'
             : player.id === currentPlayerIdForTurn
               ? 'active'
               : 'idle';

@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'motion/react';
+import YoobooLogo from '@/components/YoobooLogo';
 
 interface TopBarProps {
   roomId?: string;
@@ -14,13 +15,7 @@ export default function TopBar({ roomId, currentPlayer, direction, stackValue, o
   return (
     <div className="h-14 bg-gradient-to-r from-bgSecondary/90 to-bgPrimary border-b border-gold/10 flex items-center justify-between px-6 shrink-0">
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2.5">
-          <span className="text-lg">🃏</span>
-          <div>
-            <h1 className="text-sm font-serif font-bold text-cream tracking-tight leading-tight">UNO</h1>
-            <span className="text-[9px] font-serif italic text-gold/60 tracking-wider block leading-tight">NO MERCY</span>
-          </div>
-        </div>
+        <YoobooLogo size="sm" animated={false} />
         {roomId && (
           <span className="px-2.5 py-1 rounded-md bg-[#130E0A]/80 border border-gold/15 text-xs text-goldLight font-mono tracking-wider">
             {roomId}

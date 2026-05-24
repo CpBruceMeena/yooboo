@@ -14,7 +14,7 @@ interface UseGameReturn {
   handleCardClick: (cardId: string) => void;
   handleDraw: () => void;
   handleSkipTurn: () => void;
-  handleSayUno: () => void;
+  handleSayYooboo: () => void;
   handleColorSelect: (color: Exclude<CardColor, 'wild'>) => void;
   handleDiscardSelect: (color: Exclude<CardColor, 'wild'>) => void;
   handleEmote: (emote: string) => void;
@@ -99,8 +99,8 @@ export function useGame(): UseGameReturn & ReturnType<typeof useSocket> {
     setSelectedCardId(null);
   }, [isMyTurn, socket]);
 
-  const handleSayUno = useCallback(() => {
-    socket.sayUno();
+  const handleSayYooboo = useCallback(() => {
+    socket.sayYooboo();
   }, [socket]);
 
   const handleColorSelect = useCallback((color: Exclude<CardColor, 'wild'>) => {
@@ -151,7 +151,7 @@ export function useGame(): UseGameReturn & ReturnType<typeof useSocket> {
     handleCardClick,
     handleDraw,
     handleSkipTurn,
-    handleSayUno,
+    handleSayYooboo,
     handleColorSelect,
     handleDiscardSelect,
     handleEmote,

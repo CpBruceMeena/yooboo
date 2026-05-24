@@ -29,7 +29,7 @@ export interface Player {
   hand: Card[];
   handSize?: number;
   isEliminated: boolean;
-  saidUno: boolean;
+  saidYooboo: boolean;
   connected: boolean;
 }
 
@@ -70,7 +70,7 @@ export type ClientMessage =
   | { type: 'leave_room' }
   | { type: 'play_card'; payload: PlayCardEvent }
   | { type: 'draw_card' }
-  | { type: 'say_uno' }
+  | { type: 'say_yooboo' }
   | { type: 'chat_message'; message: string }
   | { type: 'emote'; emote: string };
 

@@ -6,7 +6,7 @@ SERVER_DIR="$ROOT_DIR/server"
 LOG_DIR="$ROOT_DIR/.logs"
 PID_FILE="$ROOT_DIR/.run.pid"
 NGINX_CONF="$ROOT_DIR/nginx.conf"
-NGINX_PID_FILE="/tmp/nginx-uno-nomercy.pid"
+NGINX_PID_FILE="/tmp/nginx-yooboo.pid"
 NEXT_BUILD_ID_FILE="$ROOT_DIR/.next/BUILD_ID"
 
 # ─── Colors ──────────────────────────────────────────────────────
@@ -188,9 +188,9 @@ stop_servers() {
   stop_nginx
 
   # Kill tmux session
-  if tmux has-session -t uno-nomercy 2>/dev/null; then
-    tmux kill-session -t uno-nomercy
-    echo -e "  ${RED}✕${NC} killed tmux session 'uno-nomercy'"
+  if tmux has-session -t yooboo 2>/dev/null; then
+    tmux kill-session -t yooboo
+    echo -e "  ${RED}✕${NC} killed tmux session 'yooboo'"
   fi
 
   # Clean up stale artifacts
@@ -243,8 +243,8 @@ status_servers() {
     echo -e "  ${RED}○${NC} Next.js (port 3001) — not running"
   fi
 
-  if tmux has-session -t uno-nomercy 2>/dev/null; then
-    echo -e "  ${CYAN}📺${NC} tmux session 'uno-nomercy' is active"
+  if tmux has-session -t yooboo 2>/dev/null; then
+    echo -e "  ${CYAN}📺${NC} tmux session 'yooboo' is active"
     any=1
   fi
 
@@ -308,7 +308,7 @@ start_tmux() {
   echo -e "${CYAN}Starting in tmux...${NC}"
 
   # Kill any previous session
-  tmux kill-session -t uno-nomercy 2>/dev/null || true
+  tmux kill-session -t yooboo 2>/dev/null || true
 
   # Give ports a moment to free
   sleep 1
@@ -322,17 +322,17 @@ start_tmux() {
   echo -e "  ${GREEN}✓${NC} nginx config OK"
 
   # Create a 3-pane tmux session
-  tmux new-session -d -s uno-nomercy -n "uno-nomercy"
+  tmux new-session -d -s yooboo -n "yooboo"
 
   # Pane 0: nginx (top-left) — start first
-  tmux send-keys -t uno-nomercy "cd $ROOT_DIR && nginx -c '$NGINX_CONF' -p '$ROOT_DIR' -g 'daemon off;'" Enter
+  tmux send-keys -t yooboo "cd $ROOT_DIR && nginx -c '$NGINX_CONF' -p '$ROOT_DIR' -g 'daemon off;'" Enter
 
   # Wait for nginx to be listening on port 3000
   wait_for_port 3000 "nginx" 10
 
   # Pane 1: Game server (top-right)
-  tmux split-window -h -t uno-nomercy
-  tmux send-keys -t uno-nomercy "cd $SERVER_DIR && npx tsx index.ts" Enter
+  tmux split-window -h -t yooboo
+  tmux send-keys -t yooboo "cd $SERVER_DIR && npx tsx index.ts" Enter
 
   # Wait for game server to be listening on port 3002
   wait_for_port 3002 "Game Server" 15
@@ -342,15 +342,15 @@ start_tmux() {
   next_cmd_val=$(next_cmd) || return 1  # Will auto-build if PRODUCTION=1 and no .next
   local next_mode
   next_mode=$(next_mode_label)
-  tmux split-window -v -t uno-nomercy
+  tmux split-window -v -t yooboo
   if [ "$next_mode" = "dev" ] && [ -n "${ALLOWED_ORIGINS:-}" ]; then
-    tmux send-keys -t uno-nomercy "cd $ROOT_DIR && ALLOWED_ORIGINS='$ALLOWED_ORIGINS' $next_cmd_val" Enter
+    tmux send-keys -t yooboo "cd $ROOT_DIR && ALLOWED_ORIGINS='$ALLOWED_ORIGINS' $next_cmd_val" Enter
   else
-    tmux send-keys -t uno-nomercy "cd $ROOT_DIR && $next_cmd_val" Enter
+    tmux send-keys -t yooboo "cd $ROOT_DIR && $next_cmd_val" Enter
   fi
 
   # Layout: two panes on top, one on bottom
-  tmux select-layout -t uno-nomercy even-horizontal 2>/dev/null || true
+  tmux select-layout -t yooboo even-horizontal 2>/dev/null || true
 
   echo ""
   echo -e "  ${GREEN}●${NC} nginx → port ${CYAN}3000${NC} (reverse proxy)"
@@ -363,7 +363,7 @@ start_tmux() {
   echo ""
 
   # ATTACH
-  tmux attach-session -t uno-nomercy
+  tmux attach-session -t yooboo
 }
 
 # ─── Start (background) ──────────────────────────────────────────
@@ -431,7 +431,7 @@ main() {
         exit 1
       fi
 
-      echo "Uno-No-Mercy startup script (3-process nginx architecture)"
+      echo "YOOBOO startup script (3-process nginx architecture)"
       local mode
       mode=$(next_mode_label)
       echo "  Mode: $mode"

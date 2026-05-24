@@ -1,12 +1,12 @@
 version: "3.9"
 
 services:
-  uno-nomercy:
+  yooboo:
     build:
       context: .
       dockerfile: Dockerfile
-    image: uno-nomercy:latest
-    container_name: uno-nomercy
+    image: yooboo:latest
+    container_name: yooboo
     ports:
       - "3000:3000"
     restart: unless-stopped

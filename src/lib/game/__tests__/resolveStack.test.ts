@@ -6,7 +6,7 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
     roomId: 'test',
     players: [
-      { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidUno: false, connected: true },
+      { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidYooboo: false, connected: true },
     ],
     drawPile: [],
     discardPile: [],
@@ -84,7 +84,7 @@ describe('resolveStack', () => {
         makeCard({ id: 'd1', color: 'blue', type: 'number', value: 1 }),
       ],
       players: [
-        { id: 'p1', name: 'Alice', hand: [], isEliminated: true, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [], isEliminated: true, saidYooboo: false, connected: true },
       ],
     });
     const drawn = resolveStack(state, 0);

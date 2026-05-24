@@ -73,10 +73,10 @@ export default function Hero() {
         className="relative z-10 text-center mb-6"
       >
         <h1 className="font-serif text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-cream leading-none tracking-tight gold-text-shadow">
-          UNO
+          YOOBOO
         </h1>
         <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold italic text-gold/80 leading-tight mt-2 gold-text-shadow">
-          NO MERCY
+          RAGE MODE
         </h2>
       </motion.div>
 

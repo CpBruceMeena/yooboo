@@ -1,0 +1,121 @@
+Based on your repository and the intermittent timeout and socket errors you're describing, I can help you diagnose the root cause. The issue is very likely a configuration mismatch between your nginx.conf and your Socket.IO client.
+
+Your nginx.conf is set to upgrade WebSocket connections on the path /api/socketio, but your client is likely connecting to the default path of /socket.io. This mismatch can cause exactly the kind of intermittent timeouts you're seeing as the connection tries to fall back to HTTP polling and eventually fails.
+
+🔍 The Likely Culprit
+What Your nginx.conf Expects	What Your Client Likely Sends
+location /api/socketio (upgrades to WebSocket)	socket.io connects to /socket.io by default
+This mismatch means WebSocket upgrades fail. Your connection then attempts to use HTTP long-polling, which can be unstable, leading to the "Socket timeout" errors. The connection might appear to work initially but will drop under real game load.
+
+🛠️ How to Verify This Is the Problem
+You can check your game's live behavior right now using your browser's developer tools while the game is running. Here's a quick guide to confirm the diagnosis:
+
+Step 1: Open your game at http://localhost:3000 (or your deployed URL).
+
+Step 2: Open your browser's Developer Tools (F12 or right-click -> "Inspect").
+
+Step 3: Go to the Network tab and filter by "ws" to see WebSocket connections.
+
+Step 4: Look for a connection to ws://localhost:3000/socket.io/.... If you see 404 errors for requests to /socket.io, that confirms the path mismatch.
+
+Step 5: Also check the Console tab for errors like WebSocket connection to 'ws://...' failed or Engine.IO error: timeout.
+
+🔧 How to Fix It
+You have two clear options to make your client and server match. Choose the one that fits your architecture better.
+
+Option A: Configure Client to Match nginx (Recommended)
+
+This is the cleanest approach. Update your Socket.IO client to use the same path defined in nginx.conf (/api/socketio).
+
+javascript
+// Find where you initialize your socket connection (likely in a hook like `useGame.ts` or `socket.ts`)
+// and update the configuration.
+
+import { io } from "socket.io-client";
+
+const socket = io({
+  path: "/api/socketio", // This must match the location in nginx.conf
+  transports: ["websocket", "polling"], // WebSocket first, polling fallback
+  // other options...
+});
+Option B: Update nginx to Accept the Default Socket.IO Path
+
+If you prefer not to change the client code, you can modify your nginx.conf to proxy the default /socket.io path.
+
+nginx
+# Add this location block to your nginx.conf, alongside your existing /api/socketio block
+location /socket.io/ {
+    proxy_pass http://127.0.0.1:3002;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # Timeout settings for WebSocket
+    proxy_read_timeout 86400s;
+    proxy_send_timeout 86400s;
+    proxy_connect_timeout 30s;
+
+    # Disable buffering for real-time communication
+    proxy_buffering off;
+}
+🧪 Additional Checks & Fixes
+If the path correction doesn't solve everything, or if you want to be thorough, here are other areas to inspect:
+
+Check Your Client's Socket.IO Version
+
+The Problem: A mismatch between the Socket.IO client (socket.io-client) and server versions can cause protocol errors and connection drops.
+
+How to check: Look at the dependencies in your root package.json and in /server/package.json.
+
+The Fix: Ensure both client and server use the same major version (e.g., both ^4.7.0).
+
+Review Your server/index.ts Configuration
+
+What to look for: Check the path option in your Socket.IO server setup. It must also match the client and nginx configuration.
+
+typescript
+// server/index.ts
+const io = new Server(httpServer, {
+  path: "/api/socketio", // Must be consistent
+  cors: { origin: "*", methods: ["GET", "POST"] },
+  transports: ["websocket", "polling"],
+  // ...other options
+});
+Inspect Your nginx.conf for WebSocket Support
+
+Your configuration looks good, but double-check that the map directive for $connection_upgrade is present. Without it, WebSocket upgrades will silently fail.
+
+nginx
+# This should be in your http block
+map $http_upgrade $connection_upgrade {
+  default upgrade;
+  ''      close;
+}
+🚀 Deeper Debugging: What to Check on Your Deployed Server
+Since you're deploying to AWS Lightsail, run these checks on your server via SSH to get more diagnostic information. I can guide you through the commands.
+
+For Docker Deployment:
+bash
+# Follow the real-time logs
+docker compose logs -f
+
+# Execute into the running container
+docker exec -it $(docker ps -q) /bin/sh
+
+# Once inside, check nginx logs
+cat /var/log/nginx/error.log
+cat /var/log/nginx/access.log | grep -i upgrade
+For Local Deployment (using ./run.sh):
+bash
+# Check game server logs (look for connection events)
+cat .logs/game.log
+
+# Check nginx access logs (look for upgrade requests)
+tail -f /opt/homebrew/var/log/nginx/access.log
+Once you've made these changes, restart your game server and test with multiple browser windows. The intermittent timeouts and socket errors should be resolved. If the issue persists, the logs will point us to the exact error.
+
+Let me know what you find after checking the browser's Network tab. The path mismatch is the most likely root cause, and confirming it there i

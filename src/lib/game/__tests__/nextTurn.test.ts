@@ -6,9 +6,9 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
   return {
     roomId: 'test',
     players: [
-      { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidUno: false, connected: true },
-      { id: 'p2', name: 'Bob', hand: [], isEliminated: false, saidUno: false, connected: true },
-      { id: 'p3', name: 'Carol', hand: [], isEliminated: false, saidUno: false, connected: true },
+      { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidYooboo: false, connected: true },
+      { id: 'p2', name: 'Bob', hand: [], isEliminated: false, saidYooboo: false, connected: true },
+      { id: 'p3', name: 'Carol', hand: [], isEliminated: false, saidYooboo: false, connected: true },
     ],
     drawPile: [],
     discardPile: [],
@@ -55,9 +55,9 @@ describe('nextTurn', () => {
     const state = makeState({
       currentPlayerIndex: 0,
       players: [
-        { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidUno: false, connected: true },
-        { id: 'p2', name: 'Bob', hand: [], isEliminated: true, saidUno: false, connected: true },
-        { id: 'p3', name: 'Carol', hand: [], isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidYooboo: false, connected: true },
+        { id: 'p2', name: 'Bob', hand: [], isEliminated: true, saidYooboo: false, connected: true },
+        { id: 'p3', name: 'Carol', hand: [], isEliminated: false, saidYooboo: false, connected: true },
       ],
     });
     nextTurn(state);
@@ -69,9 +69,9 @@ describe('nextTurn', () => {
     const state = makeState({
       currentPlayerIndex: 2,
       players: [
-        { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidUno: false, connected: true },
-        { id: 'p2', name: 'Bob', hand: [], isEliminated: true, saidUno: false, connected: true },
-        { id: 'p3', name: 'Carol', hand: [], isEliminated: true, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidYooboo: false, connected: true },
+        { id: 'p2', name: 'Bob', hand: [], isEliminated: true, saidYooboo: false, connected: true },
+        { id: 'p3', name: 'Carol', hand: [], isEliminated: true, saidYooboo: false, connected: true },
       ],
     });
     nextTurn(state);
@@ -84,9 +84,9 @@ describe('nextTurn', () => {
       currentPlayerIndex: 0,
       direction: -1,
       players: [
-        { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidUno: false, connected: true },
-        { id: 'p2', name: 'Bob', hand: [], isEliminated: true, saidUno: false, connected: true },
-        { id: 'p3', name: 'Carol', hand: [], isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidYooboo: false, connected: true },
+        { id: 'p2', name: 'Bob', hand: [], isEliminated: true, saidYooboo: false, connected: true },
+        { id: 'p3', name: 'Carol', hand: [], isEliminated: false, saidYooboo: false, connected: true },
       ],
     });
     nextTurn(state);
@@ -97,7 +97,7 @@ describe('nextTurn', () => {
     const state = makeState({
       currentPlayerIndex: 0,
       players: [
-        { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [], isEliminated: false, saidYooboo: false, connected: true },
       ],
     });
     nextTurn(state);
@@ -109,9 +109,9 @@ describe('nextTurn', () => {
     const state = makeState({
       currentPlayerIndex: 0,
       players: [
-        { id: 'p1', name: 'Alice', hand: [], isEliminated: true, saidUno: false, connected: true },
-        { id: 'p2', name: 'Bob', hand: [], isEliminated: true, saidUno: false, connected: true },
-        { id: 'p3', name: 'Carol', hand: [], isEliminated: true, saidUno: false, connected: true },
+        { id: 'p1', name: 'Alice', hand: [], isEliminated: true, saidYooboo: false, connected: true },
+        { id: 'p2', name: 'Bob', hand: [], isEliminated: true, saidYooboo: false, connected: true },
+        { id: 'p3', name: 'Carol', hand: [], isEliminated: true, saidYooboo: false, connected: true },
       ],
     });
     nextTurn(state);

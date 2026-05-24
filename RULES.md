@@ -1,7 +1,11 @@
-# 🃏 Uno-No-Mercy — Official Rules
+# 🃏 YOOBOO — Official Rules
 
 ## Overview
-Uno-No-Mercy is a high-stakes Uno variant with stacking penalties, special cards, and elimination. Last player standing with cards in hand wins — or the first to empty their hand.
+YOOBOO is a high-stakes shedding-type card game with stacking penalties, special cards, and elimination. Last player standing with cards in hand wins — or the first to empty their hand.
+
+> YOOBOO is an independent game inspired by the shedding-type card game genre.
+> It is not affiliated with, endorsed by, or connected to Mattel, Inc.
+> UNO® is a registered trademark of Mattel, Inc.
 
 ---
 
@@ -157,11 +161,11 @@ The deck consists of **152 cards** total:
 - **First to empty their hand wins the game**
 - OR **last player standing** after all others are eliminated
 
-## 7. UNO Rule
+## 7. YOOBOO Call
 
-- When a player plays their **2nd-to-last card** (leaving 1 card in hand), **UNO is automatically called**
-- A notification is shown to **all players** when someone calls UNO
-- If another player catches them before the next player's turn, they draw **2 penalty cards**
+- When a player plays their **2nd-to-last card** (leaving 1 card in hand), **"YOOBOO!" is automatically announced**
+- A notification is shown to **all players** when someone calls YOOBOO
+- Calling "YOOBOO!" signals you're one card away from winning
 
 ## 8. Color Flow Rules
 

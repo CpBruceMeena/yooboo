@@ -1,5 +1,5 @@
 /**
- * Uno-No-Mercy Smoke Test
+ * YOOBOO Smoke Test
  *
  * Tests the game server through both nginx (port 3000) and direct connection (port 3002).
  * Validates: connection, room join, game start, card actions, chat, lobby rooms.
@@ -74,7 +74,7 @@ async function waitFor(fn, timeout = 5000) {
 
 async function runTests() {
   console.log('\n=======================================');
-  console.log('  Uno-No-Mercy Smoke Test');
+  console.log('  YOOBOO Smoke Test');
   console.log('  Room:', ROOMS.direct);
   console.log('=======================================\n');
 

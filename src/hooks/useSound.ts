@@ -2,7 +2,7 @@
 
 import { useCallback, useRef } from 'react';
 
-type SoundType = 'card_play' | 'card_draw' | 'reverse' | 'uno' | 'special' | 'turn';
+type SoundType = 'card_play' | 'card_draw' | 'reverse' | 'yooboo' | 'special' | 'turn';
 
 export function useSound() {
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -62,7 +62,7 @@ export function useSound() {
           break;
         }
 
-        case 'uno': {
+        case 'yooboo': {
           osc.type = 'square';
           osc.frequency.setValueAtTime(523, now); // C5
           osc.frequency.setValueAtTime(659, now + 0.12); // E5

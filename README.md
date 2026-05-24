@@ -1,6 +1,31 @@
-# Uno-No-Mercy
+<div align="center">
+  <br>
+  <img src="public/images/yooboo-logo.svg" alt="YOOBOO" width="120" height="120">
+  <br>
+  <h1 align="center">YOOBOO</h1>
+  <p align="center">
+    <strong>RAGE MODE</strong>
+  </p>
+  <p align="center">
+    <em>Draw four. No take-backs. No excuses.</em>
+  </p>
+  <p align="center">
+    <a href="https://github.com/CpBruceMeena/yooboo"><strong>github.com/CpBruceMeena/yooboo</strong></a>
+  </p>
+  <br>
+</div>
 
-Real-time multiplayer UNO card game with server-authoritative game engine and Socket.IO communication.
+<p align="center">
+  <img src="./public/images/game-play-screenshot.jpg" alt="YOOBOO Gameplay" width="45%" />
+  &nbsp;
+  <img src="./public/images/game-lobby-screenshot.png" alt="YOOBOO Lobby" width="45%" />
+</p>
+
+<br>
+
+**YOOBOO** is a real-time multiplayer shedding-type card game with stacking penalties, special cards, and elimination. Last player standing with cards in hand wins — or the first to empty their hand.
+
+Built with a server-authoritative game engine and Socket.IO communication.
 
 ## Quick Start
 
@@ -198,9 +223,9 @@ Client (Next.js + Tailwind v4) -------- HTTPS -------> nginx (:3000)
 | Card | Effect |
 |---|---|
 | Number | Standard play, matches by value or color |
-| Reverse | Flip direction (2 players = skip, turn stays) |
-| +2 / +4 / +6 / +10 | Add to draw stack |
-| Reverse4 | Flip direction + stack +4 |
+| Flip (Reverse) | Flip direction (2 players = skip, turn stays) |
+| Double Tap (+2) / +4 / +6 / +10 | Add to draw stack |
+| Power Surge (+4 Reverse) | Flip direction + stack +4 |
 | Skip Everyone | Current player goes again |
 | Discard All | Remove all cards of chosen color |
 | Smiley 😊 | Stackable — next player plays smiley or draws until chosen color |
@@ -231,4 +256,10 @@ scripts/
 
 ## Rules
 
-See [`RULES.md`](./RULES.md) for the complete game rules including card types, stacking mechanics, special cards (Smiley 😊, +4 Reverse, +6, +10), elimination, and winning conditions.
+See [`RULES.md`](./RULES.md) for the complete game rules including card types, stacking mechanics, special cards (Smiley 😊, +4 Flip, +6, +10), elimination, and winning conditions.
+
+## Disclaimer
+
+YOOBOO is an independent card game inspired by the shedding-type card game genre.
+YOOBOO is not affiliated with, endorsed by, or connected to Mattel, Inc.
+UNO® is a registered trademark of Mattel, Inc.

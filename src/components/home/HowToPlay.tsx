@@ -107,7 +107,7 @@ const ruleCategories = [
       '25+ cards in hand = instant elimination.',
       'Eliminated players are out of the game entirely.',
       'If only one player remains, they win by survival.',
-      'Call UNO when you play your second-to-last card.',
+      'Call YOOBOO when you play your second-to-last card.',
       'Last player standing takes the crown. No mercy.',
     ],
   },

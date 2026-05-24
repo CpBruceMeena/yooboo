@@ -10,6 +10,7 @@ import GameTable from '@/components/GameTable';
 import RightPanel from '@/components/RightPanel';
 import OverlayLayer from '@/components/OverlayLayer';
 import SmileyReveal from '@/components/SmileyReveal';
+import YoobooLogo from '@/components/YoobooLogo';
 
 const playerColors = ['#C9952A','#E8B84B','#C0392B','#F2EBD9','#7A4DFF','#FF6B6B','#4CD97B','#AAB2C0'];
 
@@ -147,11 +148,11 @@ function LobbyRoom({ roomId, connected, lobbyPlayers, error, onStart, onLeave }:
             className="mb-5 py-6 text-center"
           >
             <motion.div
-              className="text-4xl mb-2"
-              animate={{ y: [0, -8, 0], rotate: [0, -5, 5, 0] }}
+              animate={{ y: [0, -6, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              className="mb-2"
             >
-              🃏
+              <YoobooLogo size="sm" animated={false} showText={false} />
             </motion.div>
             <p className="text-creamMuted text-sm font-mono">Awaiting recruits...</p>
             <p className="text-creamMuted/30 text-[10px] font-mono mt-1 tracking-wider">SHARE THE ROOM KEY ABOVE</p>
@@ -211,14 +212,14 @@ function GameContent() {
     gameState, playerId, connected, error, lobbyPlayers, roomId: rtcRoomId,
     joinRoom, startGame,
     selectedCardId, showChangeColor, showDiscardAll, toast,
-    handleCardClick, handleDraw, handleSkipTurn, handleSayUno,
+    handleCardClick, handleDraw, handleSkipTurn, handleSayYooboo,
     handleColorSelect, handleDiscardSelect,
     handleEmote, handleSendChat, handleLeave, clearToast, cancelColor,
     isMyTurn,
     smileyReveal, clearSmileyReveal,
     discardHandCards, pendingDiscardColor,
     chatMessages,
-    unoCall, clearUnoCall,
+    yoobooCall, clearYoobooCall,
   } = useGame();
 
   const { play: playSound } = useSound();
@@ -274,7 +275,7 @@ function GameContent() {
     : '';
 
   const localPlayer = gameState?.players.find((p) => p.id === playerId);
-  const unoEligible = localPlayer?.hand.length === 1 && !localPlayer.saidUno;
+  const yoobooEligible = localPlayer?.hand.length === 1 && !localPlayer.saidYooboo;
 
   const isSmileyAnimating = smileyReveal !== null;
   const smileyDrawPlayerName = smileyReveal
@@ -427,14 +428,14 @@ function GameContent() {
         <RightPanel
           onDraw={handleDrawClick}
           onSkipTurn={handleSkipTurn}
-          onSayUno={handleSayUno}
+          onSayYooboo={handleSayYooboo}
           onEmote={handleEmote}
           onSendChat={handleSendChat}
           chatMessages={chatMessages}
           playerId={playerId}
           disabled={!isMyTurn || isGameFinished || isSmileyAnimating}
           hasDrawn={hasDrawn}
-          unoEligible={!!unoEligible}
+          yoobooEligible={!!yoobooEligible}
         />
       </div>
       <OverlayLayer
@@ -608,11 +609,11 @@ function GameContent() {
         )}
       </AnimatePresence>
 
-      {/* UNO call notification */}
+      {/* YOOBOO call notification */}
       <AnimatePresence>
-        {unoCall && (
+        {yoobooCall && (
           <motion.div
-            key="uno-call"
+            key="yooboo-call"
             initial={{ opacity: 0, y: -60, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -40, scale: 0.8 }}
@@ -637,10 +638,10 @@ function GameContent() {
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 0.6, repeat: Infinity }}
                 >
-                  UNO! 🃏
+                  YOOBOO!
                 </motion.span>
                 <span className="text-bgWarm/80 text-sm font-semibold">
-                  {unoCall.playerName}
+                  {yoobooCall.playerName}
                 </span>
               </div>
               <motion.span
