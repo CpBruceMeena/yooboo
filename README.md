@@ -16,7 +16,7 @@
 </div>
 
 <p align="center">
-  <img src="./public/images/game-play-screenshot.jpg" alt="YOOBOO Gameplay" width="45%" />
+  <img src="./public/images/game-play-screenshot.png" alt="YOOBOO Gameplay" width="45%" />
   &nbsp;
   <img src="./public/images/game-lobby-screenshot.png" alt="YOOBOO Lobby" width="45%" />
 </p>
