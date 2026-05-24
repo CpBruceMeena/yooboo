@@ -80,3 +80,4 @@ Gemini_Generated_Image_*.png
 # Server dependencies
 server/node_modules/
 server/package-lock.json
+.gstack/
