@@ -182,24 +182,25 @@ async function runTests() {
       ok(!n1.st.invalid, 'No invalid_move (nginx)');
 
       // Test game action through nginx
-      const carolId = n1.st.youAre.playerId;
-      const carolP = s.players.find(p => p.id === carolId);
-      if (carolP && carolP.hand.length > 0) {
+      // Determine which player's turn it is and have them play
+      const currentPlayer = s.players.find(p => p.id === s.currentTurn);
+      if (currentPlayer && currentPlayer.hand.length > 0) {
         const top = s.discardPile[s.discardPile.length - 1];
-        const playable = carolP.hand.find(c =>
+        const playable = currentPlayer.hand.find(c =>
           c.color === 'wild' || c.color === s.activeColor ||
           (c.type === 'number' && top.type === 'number' && c.value === top.value) ||
           c.type === top.type
         );
+        const source = currentPlayer.id === n1.st.youAre.playerId ? n1 : n2;
         if (playable) {
-          const before = n1.st.stateUpdate;
-          n1.s.emit('play_card', { payload: { playerId: carolId, cardId: playable.id, chosenColor: playable.color === 'wild' ? 'red' : undefined } });
-          await new Promise(r => setTimeout(r, 2000));
-          ok(n1.st.stateUpdate !== before, 'State changed after play_card');
+          const before = source.st.stateUpdate;
+          source.s.emit('play_card', { payload: { playerId: currentPlayer.id, cardId: playable.id, chosenColor: playable.color === 'wild' ? 'red' : undefined } });
+          await new Promise(r => setTimeout(r, 3000));
+          ok(source.st.stateUpdate !== before, 'State changed after play_card (nginx)');
         } else {
-          n1.s.emit('draw_card');
-          await new Promise(r => setTimeout(r, 2000));
-          ok(true, 'Drew card (no playable)');
+          source.s.emit('draw_card');
+          await new Promise(r => setTimeout(r, 3000));
+          ok(true, 'Drew card (no playable, nginx)');
         }
       }
     }
