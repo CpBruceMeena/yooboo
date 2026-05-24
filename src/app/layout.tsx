@@ -43,9 +43,9 @@ export const metadata: Metadata = {
   title: "YOOBOO — RAGE MODE",
   description: "Real-time multiplayer card game — high-stakes action, stacking penalties, and elimination. Last one standing wins.",
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
-    apple: "/favicon.svg",
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
   },
   themeColor: "#0D0A08",
 };
