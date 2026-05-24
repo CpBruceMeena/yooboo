@@ -1,6 +1,6 @@
 <div align="center">
   <br>
-  <img src="public/images/yooboo-logo.jpeg" alt="YOOBOO" width="240">
+  <img src="public/images/yooboo-logo.png" alt="YOOBOO" width="240">
   <br>
   <h1 align="center">YOOBOO</h1>
   <p align="center">
@@ -13,7 +13,7 @@
     <a href="https://github.com/CpBruceMeena/yooboo"><strong>github.com/CpBruceMeena/yooboo</strong></a>
   </p>
   <br>
-  <video src="public/images/yooboo-animation.mp4" width="480" autoplay loop muted playsinline poster="public/images/yooboo-logo.jpeg"></video>
+  <video src="public/images/yooboo-animation.mp4" width="480" autoplay loop muted playsinline poster="public/images/yooboo-logo.png"></video>
   <br>
 </div>
 

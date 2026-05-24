@@ -46,7 +46,7 @@ export default function YoobooLogo({ size = 'md', showText = true, animated = tr
 
         {/* The new logo image */}
         <img
-          src="/images/yooboo-logo.jpeg"
+          src="/images/yooboo-logo.png"
           alt="YOOBOO"
           className="relative z-10 w-full h-full object-contain drop-shadow-2xl"
           style={{
