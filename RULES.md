@@ -3,9 +3,7 @@
 ## Overview
 YOOBOO is a high-stakes shedding-type card game with stacking penalties, special cards, and elimination. Last player standing with cards in hand wins — or the first to empty their hand.
 
-> YOOBOO is an independent game inspired by the shedding-type card game genre.
-> It is not affiliated with, endorsed by, or connected to Mattel, Inc.
-> UNO® is a registered trademark of Mattel, Inc.
+> YOOBOO is an independent game and is not affiliated with any person or organization.
 
 ---
 

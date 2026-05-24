@@ -198,9 +198,7 @@ Do not copy UNO's rulebook text. Write all rules in your own voice:
 Add this to your footer, About page, and App Store description:
 
 ```
-YOOBOO is an independent card game inspired by the shedding-type card game genre.
-YOOBOO is not affiliated with, endorsed by, or connected to Mattel, Inc.
-UNO® is a registered trademark of Mattel, Inc.
+YOOBOO is an independent game and is not affiliated with any person or organization.
 ```
 
 This is not legally required (you're not using their trademark), but it signals good faith and reduces any ambiguity.

@@ -252,6 +252,4 @@ See [`RULES.md`](./RULES.md) for the complete game rules including card types, s
 
 ## Disclaimer
 
-YOOBOO is an independent card game inspired by the shedding-type card game genre.
-YOOBOO is not affiliated with, endorsed by, or connected to Mattel, Inc.
-UNO® is a registered trademark of Mattel, Inc.
+YOOBOO is an independent game and is not affiliated with any person or organization.
