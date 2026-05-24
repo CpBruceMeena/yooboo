@@ -15,14 +15,6 @@
   <br>
 </div>
 
-<p align="center">
-  <img src="./public/images/game-play-screenshot.png" alt="YOOBOO Gameplay" width="45%" />
-  &nbsp;
-  <img src="./public/images/game-lobby-screenshot.png" alt="YOOBOO Lobby" width="45%" />
-</p>
-
-<br>
-
 **YOOBOO** is a real-time multiplayer shedding-type card game with stacking penalties, special cards, and elimination. Last player standing with cards in hand wins — or the first to empty their hand.
 
 Built with a server-authoritative game engine and Socket.IO communication.

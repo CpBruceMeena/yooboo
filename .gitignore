@@ -81,3 +81,6 @@ Gemini_Generated_Image_*.png
 server/node_modules/
 server/package-lock.json
 .gstack/
+
+# Runtime log files
+*.log
